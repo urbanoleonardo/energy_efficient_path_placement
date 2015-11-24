@@ -17,6 +17,7 @@ public class Robot {
 	private double[][] inertia_matr;
 	private double[][] inertia_tens;
 	private double[][] joint_limits;
+	private double[][] cog_Matrix; //center of gravity matrix
 	Target location;
 	
 	public static void main(String[] args){
@@ -92,11 +93,18 @@ public class Robot {
 			sec = "Degrees of Freedom";
 			break;
 		case 2: 
-			sec = "Move to the wirst";
+			sec = "Move to the wirst: joints lengths";
 			break;
-		case 3: 
-			sec = "Joints working range";
+		case 3:
+			sec = "Link masses ";
 			break;
+		case 4: 
+			sec = "Joints working range: joints limits";
+			break;
+		case 5:
+			sec = "Center of Gravity ";
+			break;
+		
 		default:
 			sec = " ";
 			break;
@@ -116,13 +124,15 @@ public class Robot {
 		switch(section){
 		case 2: 
 			this.link_length = new double[this.dof][2];
-			 
 			break;
 		case 3:
 			this.link_masses = new double[this.dof][1];
 			break;
 		case 4:
 			this.joint_limits = new double[this.dof][2];
+			break;
+		case 5:
+			this.cog_Matrix = new double[3][this.dof];
 			break;
 		
 		default:
@@ -174,8 +184,24 @@ public class Robot {
 			break;
 		case 4:
 			//here the values are read in degrees but will be converted into RAD
-			this.joint_limits[row_number][0] = Float.parseFloat(tokens[0]) * Math.PI / 180;
-			this.joint_limits[row_number][1] = Float.parseFloat(tokens[1]) * Math.PI / 180;
+			this.joint_limits[row_number][0] = Double.parseDouble(tokens[0]) * Math.PI / 180;
+			this.joint_limits[row_number][1] = Double.parseDouble(tokens[1]) * Math.PI / 180;
+			row_number++;
+			break;
+		case 5:
+			/*
+			 * REMINDER
+			 * The center of gravity matrix is a 3xDOF matrix with ( x )
+			 * 													   ( y )
+			 * 													   ( z )
+			 * in every column for each joint of the robot.
+			 */
+			for(int i = 0; i<tokens.length; i++ )
+			{
+				
+			this.cog_Matrix[row_number][i] = Double.parseDouble(tokens[i]);
+			
+			}
 			row_number++;
 			break;
 		
@@ -188,12 +214,11 @@ public class Robot {
 	public int getDOF(){
 		return this.dof;
 	}
-	
 	public double[][] getParameters(String arg)
 	{
 		/*
 		 * Function to print the parameters of the robot.
-		 * Consider using only come key words no matter the overall string given in input maybe
+		 * Consider using only some key words no matter the overall string given in input maybe
 		 * I don't think it would be better having a single method for every different parameter
 		 * just because they are all of the same type;
 		 */
@@ -211,9 +236,12 @@ public class Robot {
 		{
 			return this.joint_limits;
 		}
+		if(arg.equalsIgnoreCase("center of gravity"))
+		{
+			return this.cog_Matrix;
+		}
 		
 		return defaultRes; 
 	}
 
-	
 }

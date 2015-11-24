@@ -18,12 +18,25 @@ public class Test_robot_constructor {
 			}
 			System.out.println("");
 		}
+		
+		
 		double[][] jointLimit = newRobot.getParameters("joint limits");
-		for(int i=0; i<jointLimit.length; i++)
+		for(int i=0; i<jointLimit.length; i++) //checked and working
 		{
 			for(int j=0;j<jointLimit[0].length;j++)
 			{
-				System.out.print(jointLimit[i][j] + " ");
+				System.out.print(jointLimit[i][j]/Math.PI + " ");
+			}
+			System.out.println("");
+		}
+		
+		
+		double[][] COG = newRobot.getParameters("center of gravity");
+		for(int i=0; i<COG.length; i++) //checked and working
+		{
+			for(int j=0;j<COG[0].length;j++)
+			{
+				System.out.print(COG[i][j] + " ");
 			}
 			System.out.println("");
 		}
