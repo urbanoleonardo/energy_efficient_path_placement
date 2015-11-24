@@ -175,4 +175,9 @@ public class Robot {
 	public int getDOF(){
 		return this.dof;
 	}
+	
+	public float[][] insertiaTens(){
+		
+	}
+	
 }
