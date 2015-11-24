@@ -30,6 +30,11 @@ public class Robot {
 	 * in the cataloge, otherwise it gives you 2 choices: you can either
 	 * get the data from a file or insert them manually. (?)
 	 */
+	
+	
+	
+	//Part of CONSTRUCTORS (if more than one are needed)
+	
 	public Robot(String model_path){
 		
 		String section_limiter = "**--";
@@ -80,37 +85,72 @@ public class Robot {
 		
 	}
 	
+	//END part of CONSTRUCTORS
 	
-	private void NotifyActualSection(int section)
-	{
-		String sec;
-		
-		switch(section){
-		case 0:
-			sec = "Model of the Robot";
-			break;
-		case 1: 
-			sec = "Degrees of Freedom";
-			break;
-		case 2: 
-			sec = "Move to the wirst: joints lengths";
-			break;
-		case 3:
-			sec = "Link masses ";
-			break;
-		case 4: 
-			sec = "Joints working range: joints limits";
-			break;
-		case 5:
-			sec = "Center of Gravity ";
-			break;
-		
-		default:
-			sec = " ";
-			break;
-		}
-		System.out.println("The current section being compiled is: " + sec);
+	
+	
+	
+	//Part of GET methods
+	
+	
+	
+	public int getDOF(){
+		return this.dof;
 	}
+	
+	public double[][] getParameters(String arg)
+	{
+		
+		/*
+		 * Function to get the parameters of the robot.
+		 * Consider using only some key words no matter the overall string given in input maybe
+		 * I don't think it would be better having a single method for every different parameter
+		 * just because they are all of the same type;
+		 */
+		
+		double[][] defaultRes = new double[0][0];
+		
+		if(arg.equalsIgnoreCase("link length") || arg.equalsIgnoreCase("link_length"))
+		{
+			return this.link_length;
+		}
+		if(arg.equalsIgnoreCase("link masses") || arg.equalsIgnoreCase("link_masses"))
+		{
+			return this.link_masses;
+		}
+		if(arg.equalsIgnoreCase("joint limits") || arg.equalsIgnoreCase("joint_limits"))
+		{
+			return this.joint_limits;
+		}
+		if(arg.equalsIgnoreCase("center of gravity"))
+		{
+			return this.cog_Matrix;
+		}
+		
+		return defaultRes; 
+	}
+	
+	//END of GET methods
+	
+	
+	
+	
+	//Part of SET methods (if needed)
+	
+	
+	//END of SET methods
+	
+	//OTHER PUBLIC methods
+	
+	
+	
+	//END of PUBLIC methods
+	
+	//
+	//Part of PRIVATE methods that are used/called by inner methods
+	//
+	
+	
 	private void CopyRobotParameters (BufferedReader b, int section) throws IOException
 	{
 		String s;
@@ -204,6 +244,10 @@ public class Robot {
 			}
 			row_number++;
 			break;
+		case 6:
+			break;
+		case 7:
+			break;
 		
 		default:
 			break;
@@ -211,37 +255,39 @@ public class Robot {
 		}
 	}
 	
-	public int getDOF(){
-		return this.dof;
-	}
-	public double[][] getParameters(String arg)
+	private void NotifyActualSection(int section)
 	{
-		/*
-		 * Function to print the parameters of the robot.
-		 * Consider using only some key words no matter the overall string given in input maybe
-		 * I don't think it would be better having a single method for every different parameter
-		 * just because they are all of the same type;
-		 */
-		double[][] defaultRes = new double[0][0];
+		String sec;
 		
-		if(arg.equalsIgnoreCase("link length") || arg.equalsIgnoreCase("link_length"))
-		{
-			return this.link_length;
-		}
-		if(arg.equalsIgnoreCase("link masses") || arg.equalsIgnoreCase("link_masses"))
-		{
-			return this.link_masses;
-		}
-		if(arg.equalsIgnoreCase("joint limits") || arg.equalsIgnoreCase("joint_limits"))
-		{
-			return this.joint_limits;
-		}
-		if(arg.equalsIgnoreCase("center of gravity"))
-		{
-			return this.cog_Matrix;
-		}
+		switch(section){
+		case 0:
+			sec = "Model of the Robot";
+			break;
+		case 1: 
+			sec = "Degrees of Freedom";
+			break;
+		case 2: 
+			sec = "Move to the wirst: joints lengths";
+			break;
+		case 3:
+			sec = "Link masses ";
+			break;
+		case 4: 
+			sec = "Joints working range: joints limits";
+			break;
+		case 5:
+			sec = "Center of Gravity ";
+			break;
 		
-		return defaultRes; 
+		default:
+			sec = " ";
+			break;
+		}
+		System.out.println("The current section being compiled is: " + sec);
 	}
-
+	
+	
+	// END of PRIVATE methods
+	
+	
 }

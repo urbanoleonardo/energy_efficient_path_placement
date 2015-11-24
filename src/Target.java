@@ -2,19 +2,25 @@
 
 public class Target {
 
-	private float[][] hom_matrix;
-	private float[][] position;
-	private float[][] rotation;
+	private double[][] hom_matrix;
+	private double[][] position;
+	private double[][] rotation;
+
 
 	public static void main(String[] args){
 
 	}
+	
+	
+	
+	
+	//Part of CONSTRUCTORS
 
-	public void Target(float[][] T){
+	public void Target(double[][] T){
 
-		hom_matrix = new float[4][4];
-		position = new float[3][1];
-		rotation = new float[3][3];
+		hom_matrix = new double[4][4];
+		position = new double[3][1];
+		rotation = new double[3][3];
 
 		if(T.length == 4 || T[0].length == 4){		
 			for(int i = 0; i < T.length; i++)
@@ -32,11 +38,11 @@ public class Target {
 
 	}
 
-	public void Target(float[] pos, float[][] rot){
+	public void Target(double[] pos, double[][] rot){
 
-		hom_matrix = new float[4][4];
-		position = new float[3][1];
-		rotation = new float[3][3];
+		hom_matrix = new double[4][4];
+		position = new double[3][1];
+		rotation = new double[3][3];
 
 		hom_matrix[3][3] = 1;
 
@@ -62,22 +68,44 @@ public class Target {
 		}
 	}
 
-	public float[][] getHomMatrix(){
+	//END of CONSTRUCTORS
+	
+	
+	//Part of GET methods
+	
+	public double[][] getHomMatrix(){
 
 		return hom_matrix;
 
 	}
 
-	public float[][] getPosition(){
+	public double[][] getPosition(){
 
 		return position;
 
 	}
 
-	public float[][] getRotation(){
+	public double[][] getRotation(){
 
 		return rotation;
 
 	}
+	
+	//END of GET methods
+	
+	//OTHER PUBLIC methods
+	
+	
+	
+	
+	
+	//END of PUBLIC methods
+	
+	
+	
+	//PRIVATE methods
+	
+	
+	
 
 }
