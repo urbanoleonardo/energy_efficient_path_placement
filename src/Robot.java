@@ -12,11 +12,11 @@ public class Robot {
 
 	private String model;
 	private int dof;
-	private float[][] link_length;
-	private float[][] link_masses;
-	private float[][] inertia_matr;
-	private float[][] inertia_tens;
-	private float[][] joint_limits;
+	private double[][] link_length;
+	private double[][] link_masses;
+	private double[][] inertia_matr;
+	private double[][] inertia_tens;
+	private double[][] joint_limits;
 	Target location;
 	
 	public static void main(String[] args){
@@ -115,14 +115,14 @@ public class Robot {
 		
 		switch(section){
 		case 2: 
-			this.link_length = new float[this.dof][2];
+			this.link_length = new double[this.dof][2];
 			 
 			break;
 		case 3:
-			this.link_masses = new float[this.dof][1];
+			this.link_masses = new double[this.dof][1];
 			break;
 		case 4:
-			this.joint_limits = new float[this.dof][2];
+			this.joint_limits = new double[this.dof][2];
 			break;
 		
 		default:
@@ -162,8 +162,20 @@ public class Robot {
 			this.dof = Integer.parseInt(tokens[0]);
 			break;
 		case 2:
-			this.link_length[row_number][0] = Float.parseFloat(tokens[0]);
-			this.link_length[row_number][1] = Float.parseFloat(tokens[1]);
+			this.link_length[row_number][0] = Double.parseDouble(tokens[0]);
+			this.link_length[row_number][1] = Double.parseDouble(tokens[1]);
+			row_number++;
+			break;
+		case 3:
+			for(int i = 0; i<tokens.length; i++ )
+			{
+				this.link_masses[i][0] = Double.parseDouble(tokens[i]);
+			}
+			break;
+		case 4:
+			//here the values are read in degrees but will be converted into RAD
+			this.joint_limits[row_number][0] = Float.parseFloat(tokens[0]) * Math.PI / 180;
+			this.joint_limits[row_number][1] = Float.parseFloat(tokens[1]) * Math.PI / 180;
 			row_number++;
 			break;
 		
@@ -172,7 +184,36 @@ public class Robot {
 		}
 		}
 	}
+	
 	public int getDOF(){
 		return this.dof;
 	}
+	
+	public double[][] getParameters(String arg)
+	{
+		/*
+		 * Function to print the parameters of the robot.
+		 * Consider using only come key words no matter the overall string given in input maybe
+		 * I don't think it would be better having a single method for every different parameter
+		 * just because they are all of the same type;
+		 */
+		double[][] defaultRes = new double[0][0];
+		
+		if(arg.equalsIgnoreCase("link length") || arg.equalsIgnoreCase("link_length"))
+		{
+			return this.link_length;
+		}
+		if(arg.equalsIgnoreCase("link masses") || arg.equalsIgnoreCase("link_masses"))
+		{
+			return this.link_masses;
+		}
+		if(arg.equalsIgnoreCase("joint limits") || arg.equalsIgnoreCase("joint_limits"))
+		{
+			return this.joint_limits;
+		}
+		
+		return defaultRes; 
+	}
+
+	
 }
