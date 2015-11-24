@@ -176,8 +176,9 @@ public class Robot {
 		return this.dof;
 	}
 	
-	public float[][] insertiaTens(){
-		
+	public float[][] inertiaTens(){
+		float[][] ajeje = new float[4][4];
+		return ajeje;
 	}
 	
 }
