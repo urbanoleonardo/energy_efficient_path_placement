@@ -3,7 +3,7 @@
 public class Target {
 
 	private double[][] hom_matrix;
-	private double[][] position;
+	private double[] position;
 	private double[][] rotation;
 
 
@@ -19,7 +19,7 @@ public class Target {
 	public void Target(double[][] T){
 
 		hom_matrix = new double[4][4];
-		position = new double[3][1];
+		position = new double[3];
 		rotation = new double[3][3];
 
 		if(T.length == 4 || T[0].length == 4){		
@@ -27,7 +27,7 @@ public class Target {
 				for (int j = 0; j < T[i].length; j++){
 					hom_matrix[i][j] = T[i][j];
 					if(i != 4 && j == 4)
-						position[i][1] = T[i][j];
+						position[i] = T[i][j];
 					if(i != 4 && j != 4)
 						rotation[i][j] = T[i][j];
 				}
@@ -41,7 +41,7 @@ public class Target {
 	public void Target(double[] pos, double[][] rot){
 
 		hom_matrix = new double[4][4];
-		position = new double[3][1];
+		position = new double[3];
 		rotation = new double[3][3];
 
 		hom_matrix[3][3] = 1;
@@ -49,7 +49,7 @@ public class Target {
 		if(rotation.length == 3){
 			for(int i = 0; i < pos.length;i++){
 				hom_matrix[i][3] = pos[i];
-				position[i][0] = pos[i];
+				position[i] = pos[i];
 			}
 		}else{
 			System.out.println("Wrong dimensions. Position vector must be a vector of length = 3.");
@@ -79,7 +79,7 @@ public class Target {
 
 	}
 
-	public double[][] getPosition(){
+	public double[] getPosition(){
 
 		return position;
 
