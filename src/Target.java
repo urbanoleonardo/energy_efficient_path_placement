@@ -16,7 +16,7 @@ public class Target {
 	
 	//Part of CONSTRUCTORS
 
-	public void Target(double[][] T){
+	public Target(double[][] T){
 
 		hom_matrix = new double[4][4];
 		position = new double[3];
@@ -38,7 +38,7 @@ public class Target {
 
 	}
 
-	public void Target(double[] pos, double[][] rot){
+	public Target(double[] pos, double[][] rot){
 
 		hom_matrix = new double[4][4];
 		position = new double[3];
