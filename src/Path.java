@@ -83,8 +83,8 @@ public class Path {
 		Trajectory interpolatedPath = new Trajectory();
 		
 		double acc_time = this.max_acc/this.max_vel;
-		double[][] init_pos = this.intial_position.getPosition();
-		double[][] fin_pos = this.final_position.getPosition();
+		double[] init_pos = this.intial_position.getPosition();
+		double[] fin_pos = this.final_position.getPosition();
 		
 		//double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
 		interpolatedPath.Points.add(this.intial_position);
