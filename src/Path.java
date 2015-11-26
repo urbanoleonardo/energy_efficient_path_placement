@@ -60,8 +60,13 @@ public class Path {
 	
 	
 	//Part of the SET methods, where you can maybe set some parameters (not sure if needed)
+	public void SetMaxAcc(double acceleration){
+		this.max_acc = acceleration;
+	}
 	
-	
+	public void SetMaxVel(double velocity){
+		this.max_vel = velocity;
+	}
 	
 	//END of the SET methods
 	
@@ -77,7 +82,18 @@ public class Path {
 		 */
 		Trajectory interpolatedPath = new Trajectory();
 		
+		double acc_time = this.max_acc/this.max_vel;
+		double[][] init_pos = this.intial_position.getPosition();
+		double[][] fin_pos = this.final_position.getPosition();
 		
+		//double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
+		interpolatedPath.Points.add(this.intial_position);
+		/*
+		if(((2*acc_time)*this.max_vel/2.0) < distance)
+		{
+			
+		}
+		*/
 		
 		return interpolatedPath;
 	}
