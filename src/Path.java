@@ -68,6 +68,14 @@ public class Path {
 		this.max_vel = velocity;
 	}
 	
+	public void SetXSample(double x_sample){
+		this.x_sample = x_sample;
+	}
+	
+	public void SetTSample(double t_sample){
+		this.t_sample = t_sample;
+	}
+	
 	//END of the SET methods
 	
 	//OTHER PUBLIC methods
@@ -82,18 +90,91 @@ public class Path {
 		 */
 		Trajectory interpolatedPath = new Trajectory();
 		
+		
 		double acc_time = this.max_acc/this.max_vel;
 		double[] init_pos = this.intial_position.getPosition();
 		double[] fin_pos = this.final_position.getPosition();
 		
-		//double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
+		double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
+		double tot_time = 0;
+		double time = 0;
+		double max_vel;
+		double acc_distance;
+		
+		boolean acc_phase;
+		boolean dec_phase;
+		
+		double new_position;
+		
 		interpolatedPath.Points.add(this.intial_position);
-		/*
+		
 		if(((2*acc_time)*this.max_vel/2.0) < distance)
 		{
-			
+			tot_time = (distance - (2*acc_time)*this.max_vel/2.0)/this.max_vel + 2*acc_time;
+			max_vel = this.max_vel;
+			System.out.println("The maximum velocity is: " + this.max_vel + " m/s");
 		}
-		*/
+		else
+		{
+			max_vel = Math.sqrt(distance*2*this.max_vel/(2*acc_time));
+			tot_time = distance*2/max_vel;
+			acc_time = acc_time*max_vel/this.max_vel;
+			System.out.println("The velocity profiel is triangular, so the new maximum velocity is: " + max_vel + " m/s");
+		}
+		
+		acc_distance = max_vel*acc_time/2;
+		
+		if(acc_time > 0)
+		{
+			acc_phase = true;
+		}
+		else
+		{
+			acc_phase = false;
+		}
+		
+		dec_phase = false;
+		
+		while(time <= tot_time)
+		{
+			if(time > acc_time)
+			{
+				acc_phase = false;
+			}
+			if(time > (tot_time - acc_time))
+			{
+				dec_phase = true;
+			}
+			
+			if(acc_phase)
+			{
+				new_position = time*max_vel/acc_time*time/2;
+			}
+			else
+			{
+				if(dec_phase)
+				{
+					new_position = distance - (tot_time - time)*(tot_time - time)*max_vel/(2*acc_time);
+				}
+				else
+				{
+					new_position = acc_distance + (max_vel*(time - acc_time));
+				}
+			}
+			
+			double[] position_vector = vector_subtract(this.final_position.getPosition(), this.intial_position.getPosition());
+			position_vector = vector_MultiplyConstant(position_vector, new_position/distance);
+			position_vector = vector_sum(position_vector, this.intial_position.getPosition());
+			
+			//for the moment I'm not changing the rotation matrix
+			Target newPointInTrajectory = new Target(position_vector, this.intial_position.getRotation());
+			
+			//add the new target to the trajectory
+			interpolatedPath.Points.add(newPointInTrajectory);
+			
+		}//end of the WHILE loop
+		
+		interpolatedPath.Points.add(this.final_position);
 		
 		return interpolatedPath;
 	}
@@ -105,7 +186,35 @@ public class Path {
 	
 	//PRIVATE methods
 	
+	private double[] vector_sum(double[] a, double[] b)
+	{
+		double[] result = new double[a.length];
+		for(int i = 0; i < a.length; i++)
+		{
+			result[i] = a[i] + b[i];
+		}
+		return result;
+	}
 	
+	private double[] vector_subtract(double[] a, double[] b)
+	{
+		double[] result = new double[a.length];
+		for(int i = 0; i < a.length; i++)
+		{
+			result[i] = a[i] - b[i];
+		}
+		return result;
+	}
+	
+	private double[] vector_MultiplyConstant(double[] a, double constant)
+	{
+		
+		for(int i = 0; i < a.length; i++)
+		{
+			a[i] = a[i] * constant;
+		}
+		return a;
+	}
 	
 	
 
