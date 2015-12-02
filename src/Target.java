@@ -109,6 +109,22 @@ public class Target {
 		return rotation;
 
 	}
+	
+	public double[][] getInvRotation(){
+		
+		/*
+		 * R is hortogonal so its inverse matrix is equal to its traspose matrix
+		 */
+
+		double[][] INV = new double[4][4];
+
+		for(int i = 0; i < this.getHomMatrix().length; i++)
+			for(int j = 0; j < this.getHomMatrix()[0].length; j++)
+				INV[i][j] = this.getHomMatrix()[j][i];
+
+		return INV;
+
+	}
 
 	//END of GET methods
 
@@ -123,8 +139,6 @@ public class Target {
 		Target T = new Target(INV);
 
 		return T;
-
-
 
 	}
 
