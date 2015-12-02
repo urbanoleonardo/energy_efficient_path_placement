@@ -97,73 +97,9 @@ public class Target {
 		return hom_matrix;
 
 	}
-
-	public double[] getPosition(){
-
-		return position;
-
-	}
-
-	public double[][] getRotation(){
-
-		return rotation;
-
-	}
 	
-	public double[][] getInvRotation(){
+public double[][] getInvHomMatrix(double[][] M){
 		
-		/*
-		 * R is hortogonal so its inverse matrix is equal to its traspose matrix
-		 */
-
-		double[][] INV = new double[4][4];
-
-		for(int i = 0; i < this.getHomMatrix().length; i++)
-			for(int j = 0; j < this.getHomMatrix()[0].length; j++)
-				INV[i][j] = this.getHomMatrix()[j][i];
-
-		return INV;
-
-	}
-
-	//END of GET methods
-
-	//OTHER PUBLIC methods
-
-	public Target inv(){
-
-		double[][] INV = new double[4][4];
-
-		INV = gaussianElimination(this.getHomMatrix());
-
-		Target T = new Target(INV);
-
-		return T;
-
-	}
-
-	//END of PUBLIC methods
-
-
-
-	//PRIVATE methods
-
-	private double[][] identityMatr(){
-
-		double[][] I = new double[4][4];
-
-		for(int i = 0; i < I.length; i++)
-			for(int j = 0; j < I[0].length; j++)
-				if(i == j)
-					I[i][j] = 1;
-				else I[i][j] = 0;
-
-		return I;
-
-	}
-
-	private double[][] gaussianElimination(double[][] M){
-		// TODO: test this!!
 		/*
 		 * It returns the inverse matrix using Gaussian Elimination Algorithm
 		 * Input: 4x4 matrix
@@ -201,6 +137,58 @@ public class Target {
 		}
 
 		return INV;
+
+}
+
+	public double[] getPosition(){
+
+		return position;
+
+	}
+
+	public double[][] getRotation(){
+
+		return rotation;
+
+	}
+	
+	public double[][] getInvRotation(){
+		
+		/*
+		 * R is hortogonal so its inverse matrix is equal to its traspose matrix
+		 */
+
+		double[][] INV = new double[4][4];
+
+		for(int i = 0; i < this.getHomMatrix().length; i++)
+			for(int j = 0; j < this.getHomMatrix()[0].length; j++)
+				INV[i][j] = this.getHomMatrix()[j][i];
+
+		return INV;
+
+	}
+
+	//END of GET methods
+
+	//OTHER PUBLIC methods
+
+	//END of PUBLIC methods
+
+
+
+	//PRIVATE methods
+
+	private double[][] identityMatr(){
+
+		double[][] I = new double[4][4];
+
+		for(int i = 0; i < I.length; i++)
+			for(int j = 0; j < I[0].length; j++)
+				if(i == j)
+					I[i][j] = 1;
+				else I[i][j] = 0;
+
+		return I;
 
 	}
 
