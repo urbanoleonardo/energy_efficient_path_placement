@@ -155,7 +155,7 @@ public double[][] getInvHomMatrix(){
 	public double[][] getInvRotation(){
 		
 		/*
-		 * R is hortogonal so its inverse matrix is equal to its traspose matrix
+		 * R is orthogonal so its inverse matrix is equal to its transpose matrix
 		 */
 
 		double[][] INV = new double[4][4];
@@ -170,10 +170,27 @@ public double[][] getInvHomMatrix(){
 
 	//END of GET methods
 
+	//SET methods
+	
+	
+	//END of SET methods
+	
+	
 	//OTHER PUBLIC methods
 
+	public void TranslateTarget (double[] vector)
+	{
+		for(int i = 0 ; i < this.position.length ; i++)
+		{
+		this.position[i] += vector[i];
+		this.hom_matrix[i][3] = vector[i];
+		}
+	}
+	
+	
+	
+	
 	//END of PUBLIC methods
-
 
 
 	//PRIVATE methods

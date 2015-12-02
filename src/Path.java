@@ -111,6 +111,7 @@ public class Path {
 		double new_position;
 		
 		interpolatedPath.Points.add(this.intial_position);
+		interpolatedPath.TimeInstants.add(time);
 		
 		if(((2*acc_time)*this.max_vel/2.0) < distance)
 		{
@@ -180,12 +181,20 @@ public class Path {
 		}//end of the WHILE loop
 		
 		interpolatedPath.Points.add(this.final_position);
+		interpolatedPath.TimeInstants.add(time);
 		//the time offset still has to be considered (maybe a method?)
 		
 		this.interpolated_path = interpolatedPath;
 		return interpolatedPath;
 	}
 	
+	public void TranslateTrajectory(double[] vector)
+	{
+		for(Target i : this.interpolated_path.Points)
+		{
+			i.TranslateTarget(vector);
+		}
+	}
 	
 	
 	//END of PUBLIC methods

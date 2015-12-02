@@ -9,6 +9,7 @@ public class Trajectory {
  * of a certain vector.
  */
 	public ArrayList<Target> Points = new ArrayList<Target>();
+	public ArrayList<Double> TimeInstants = new ArrayList<Double>();
 	
 	
 }
