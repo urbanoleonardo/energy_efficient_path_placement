@@ -292,7 +292,7 @@ public class Robot {
 	private double[][] MultiplyMatrices(double[][] left, double[][] right){
 
 		/*
-		 * Function implemented to multiply 2 matrices (useful in Hfrom_to)
+		 * Function implemented to multiply 2 matrices (useful in Hto_from)
 		 */
 
 		double[][] M = new double[left.length][right[0].length];
@@ -300,13 +300,13 @@ public class Robot {
 		for(int row = 0; row < M.length; row++)
 			for(int column = 0; column < M[0].length; column++)
 				M[row][column] = 0;
-		
+
 		if(left[0].length == right.length){
 
 			for(int row = 0; row < M.length; row++)
 				for(int column = 0; column < M[0].length; column++)
 					for(int i = 0; i < left[0].length; i++)
-					M[row][column] += left[row][i] * right[i][column];
+						M[row][column] += left[row][i] * right[i][column];
 
 		}else{
 			System.out.println("The dimension of the matrices do not agree. [m*n n*p = m*p]");
@@ -316,13 +316,34 @@ public class Robot {
 
 	}
 
-	private Target Hfrom_to(int from, int to, double[] joint_values){
+	private Target Hto_from(int from, int to, double[] joint_values){
 
 		/* It returns the homogeneous matrix (H) representing position and orientation of
 		 * frame "from" with respect to frame "to" 
 		 * 
 		 * joint_values = values of the joint coordinates
 		 */
+
+		List<double[][]> H_indexed = new ArrayList<double[][]>(this.dof);
+		Target T;
+		double[][] I = new double[4][4];
+		double[][] H = new double[4][4];
+		int max;
+		int min;
+
+		for(int i = 0; i < 4; i++)
+			for(int j = 0; j < 4; j++)
+				if(i == j)
+					I[i][j] = 1;
+				else I[i][j] = 0;
+
+		H = I;
+
+		if(from == to){
+			T = new Target(H);
+			return T;
+		}
+
 
 		double[][] H0_1 = {
 				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, 0},
@@ -361,8 +382,6 @@ public class Robot {
 				{0, 0, 0, 1}
 		};
 
-		List<double[][]> H_indexed = new ArrayList<double[][]>(this.dof);
-
 		H_indexed.add(H0_1);
 		H_indexed.add(H1_2);
 		H_indexed.add(H2_3);
@@ -370,21 +389,26 @@ public class Robot {
 		H_indexed.add(H4_5);
 		H_indexed.add(H5_6);
 
-		double[][] I = new double[4][4];
-		for(int i = 0; i < 4; i++)
-			for(int j = 0; j < 4; j++)
-				if(i == j)
-					I[i][j] = 1;
-				else I[i][j] = 0;
 
-		double[][] T = new double[4][4];
-		T = I;
+		if(from > to){
+			max = from;
+			min = to;
+		}else{
+			max = to;
+			min = from;
+		}
 
-		for(int i = from - 1; i >= to; i--)
-			T = MultiplyMatrices(H_indexed.get(i), T);
+		for(int i = max - 1; i >= min; i--)
+			H = MultiplyMatrices(H_indexed.get(i), H);
 
-		Target H = new Target(T);
-		return H;
+		T = new Target(H);
+
+		if(from < to){
+			H = T.getInvHomMatrix();
+			T.setHomMatrix(H);
+		}
+
+		return T;
 
 	}
 
@@ -402,12 +426,13 @@ public class Robot {
 		 * Output: cg coordinates with respect to frame 0
 		 */
 
+
 		double[] joint_values = new double[this.dof];
 		double[][] cg_i = new double[3][1];
 		double[][] cg0 = new double[3][this.dof];
 		double[][] cg0_i = new double[3][1];
 		Target T0_i = new Target();
-		
+
 		/*
 		 * I divide cg by 1000 in order to get mm instead of m
 		 */
@@ -424,7 +449,7 @@ public class Robot {
 			initializeArray(joint_values);
 
 			/* From i to 0 because I want the inverse matrix */
-			T0_i = Hfrom_to(0, i, joint_values);
+			T0_i = Hto_from(0, i, joint_values);
 			cg0_i = MultiplyMatrices(T0_i.getInvRotation(), cg_i);
 
 			cg0[0][i] = cg0_i[0][0];

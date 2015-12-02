@@ -172,6 +172,13 @@ public double[][] getInvHomMatrix(){
 
 	//SET methods
 	
+	public void setHomMatrix(double[][] H){
+		
+		for(int i = 0; i < 4; i++)
+			for(int j = 0; j < 4; j++)
+				this.hom_matrix[i][j] = H[i][j];
+		
+	}
 	
 	//END of SET methods
 	
