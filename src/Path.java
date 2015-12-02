@@ -96,6 +96,10 @@ public class Path {
 		double[] fin_pos = this.final_position.getPosition();
 		
 		double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
+		
+		//Log for debug
+		//System.out.println("Distance : " + distance + " and acceleration time : " + acc_time);
+		
 		double tot_time = 0;
 		double time = 0;
 		double max_vel;
@@ -119,7 +123,7 @@ public class Path {
 			max_vel = Math.sqrt(distance*2*this.max_vel/(2*acc_time));
 			tot_time = distance*2/max_vel;
 			acc_time = acc_time*max_vel/this.max_vel;
-			System.out.println("The velocity profiel is triangular, so the new maximum velocity is: " + max_vel + " m/s");
+			System.out.println("The velocity profile is triangular, so the new maximum velocity is: " + max_vel + " m/s");
 		}
 		
 		acc_distance = max_vel*acc_time/2;
@@ -172,10 +176,13 @@ public class Path {
 			//add the new target to the trajectory
 			interpolatedPath.Points.add(newPointInTrajectory);
 			
+			time += this.t_sample;
 		}//end of the WHILE loop
 		
 		interpolatedPath.Points.add(this.final_position);
+		//the time offset still has to be considered (maybe a method?)
 		
+		this.interpolated_path = interpolatedPath;
 		return interpolatedPath;
 	}
 	
