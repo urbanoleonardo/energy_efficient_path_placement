@@ -98,7 +98,7 @@ public class Target {
 
 	}
 	
-public double[][] getInvHomMatrix(double[][] M){
+public double[][] getInvHomMatrix(){
 		
 		/*
 		 * It returns the inverse matrix using Gaussian Elimination Algorithm
@@ -109,27 +109,27 @@ public double[][] getInvHomMatrix(double[][] M){
 		double[][] INV = new double[4][4];
 		INV = identityMatr();
 
-		for(int k = 0; k < M.length; k++){
+		for(int k = 0; k < this.getHomMatrix().length; k++){
 
-			temp = M[k][k];	
+			temp = this.getHomMatrix()[k][k];	
 
-			for(int j = 0; j < M[0].length; j++){
+			for(int j = 0; j < this.getHomMatrix()[0].length; j++){
 
-				M[k][j] /= temp;									
+				this.getHomMatrix()[k][j] /= temp;									
 				INV[k][j] /= temp;		
 
 			}
 
-			for(int i=0; i < M.length; i++){
+			for(int i=0; i < this.getHomMatrix().length; i++){
 
-				temp = M[i][k];	
+				temp = this.getHomMatrix()[i][k];	
 
-				for(int j = 0; j < M[0].length; j++){
+				for(int j = 0; j < this.getHomMatrix()[0].length; j++){
 
 					if(i == k)
 						break;
 
-					M[i][j] -= M[k][j]*temp;						
+					this.getHomMatrix()[i][j] -= this.getHomMatrix()[k][j]*temp;						
 					INV[i][j] -= INV[k][j]*temp;
 
 				}
