@@ -324,7 +324,7 @@ public class Robot {
 		 * joint_values = values of the joint coordinates
 		 */
 
-		List<double[][]> H_indexed = new ArrayList<double[][]>(this.dof);
+		List<double[][]> H_indexed = new ArrayList<double[][]>(this.dof + 1);
 		Target T;
 		double[][] I = new double[4][4];
 		double[][] H = new double[4][4];
@@ -381,6 +381,12 @@ public class Robot {
 				{-Math.cos(joint_values[6]), Math.sin(joint_values[6]), 0, 0},
 				{0, 0, 0, 1}
 		};
+		double[][] H6_endEff = {
+				{1, 0, 0, 0},
+				{0, 1, 0, 0},
+				{0, 0, 1, 0},
+				{0, 0, 0, 1}
+		};
 
 		H_indexed.add(H0_1);
 		H_indexed.add(H1_2);
@@ -388,6 +394,7 @@ public class Robot {
 		H_indexed.add(H3_4);
 		H_indexed.add(H4_5);
 		H_indexed.add(H5_6);
+		H_indexed.add(H6_endEff);
 
 
 		if(from > to){
