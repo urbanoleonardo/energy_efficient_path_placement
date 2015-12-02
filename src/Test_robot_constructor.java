@@ -136,7 +136,7 @@ public class Test_robot_constructor {
 					for(int i = 0; i < left[0].length; i++)
 					{
 					M[row][column] += left[row][i] * right[i][column];
-				}
+					}
 				}
 		
 			}
