@@ -295,20 +295,24 @@ public class Robot {
 		 * Function implemented to multiply 2 matrices (useful in Hfrom_to)
 		 */
 
-		double[][] m = new double[left.length][right[0].length];
+		double[][] M = new double[left.length][right[0].length];
 
+		for(int row = 0; row < M.length; row++)
+			for(int column = 0; column < M[0].length; column++)
+				M[row][column] = 0;
+		
 		if(left[0].length == right.length){
 
-			for(int row = 0; row < m.length; row++)
-				for(int column = 0; column < m[0].length; column++)
+			for(int row = 0; row < M.length; row++)
+				for(int column = 0; column < M[0].length; column++)
 					for(int i = 0; i < left[0].length; i++)
-					m[row][i] += left[row][i] + right[i][column];
+					M[row][column] += left[row][i] * right[i][column];
 
 		}else{
 			System.out.println("The dimension of the matrices do not agree. [m*n n*p = m*p]");
 		}
 
-		return m;
+		return M;
 
 	}
 
