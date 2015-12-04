@@ -156,104 +156,59 @@ public class OnlinePlanner implements Runnable{
 		 * 1: get the target rotation
 		 * 2: get from the robot the rotational matrix from 0 to TOOL
 		 * 3: build the matrix from which the Euler's angles will be calculated
+		 * 
+		 * IMPORTANT: needed a way to read the joint angles of the previous configuration 
 		 */
-		double[][] dummy = new double[3][3];
-		
+			
 		double[][] R_zyz = {
 				{0.45,  0.0,  0.20},
 				{0.20, -0.90, 0.10},
 				{0.30, -0.10, 1.00}
 		};
 		
+		double previous_theta4_TEST = 0; //has to be copied from the previous configuration
+		
+		double theta_46;
+		double[] theta_4 = new double[2];
 		double[] theta_5 = new double[2];
-		double temp = Math.sqrt(R_zyz[2][0]*R_zyz[2][0] + R_zyz[2][1]*R_zyz[2][1]);
+		double[] theta_6 = new double[2];
+		
+		//double[][] theta_456;
+		
+ 		double temp = Math.sqrt(R_zyz[2][0]*R_zyz[2][0] + R_zyz[2][1]*R_zyz[2][1]);
 		
 		theta_5[0] = Math.atan2(temp, R_zyz[2][2]);
 		theta_5[1] = Math.atan2(-temp, R_zyz[2][2]);
 		
 		for(int i = 0; i < theta_5.length ; i++)
 		{
-			
-			
-			
-			
-			
+			if(-0.0001 < theta_5[i] && theta_5[i] < 0.0001)
+			{//theta_5 is 0 and we're in a singularity case
+				theta_4[i] = previous_theta4_TEST;
+				theta_46 = Math.atan2(R_zyz[1][0], R_zyz[0][0]);
+				
+				theta_6[i] = theta_46 - theta_4[i];
+				
+			}
+			else
+			{//theta_5 is NOT 0 and we can calculate the other angles
+				temp = Math.sin(theta_5[i]);
+				theta_4[i] = Math.atan2(R_zyz[0][2], -R_zyz[1][2])/temp;
+				theta_6[i] = Math.atan2(R_zyz[2][0], -R_zyz[2][1])/temp;
+			}
 		}
 		
+		double[][] theta_456 = new double[3][2];
+		theta_456[0] = theta_4;
+		theta_456[1] = theta_5;
+		theta_456[2] = theta_6;
 		
-		return dummy;
+		return theta_456;
+		/*
+		 * REMINDER
+		 * in case performance change significantly it could be possible to assign
+		 * the theta values directly to the 3x2 matrix and then return it.
+		 */
 	}
-	/*
-	 * %euler angles Z-X-Z
-theta5(1)=atan2(sqrt(Rzyz(3,1)^2+Rzyz(3,2)^2),Rzyz(3,3));
-theta5(2)=atan2(-sqrt(Rzyz(3,1)^2+Rzyz(3,2)^2),Rzyz(3,3));
-
-for cont10=1:2
-    % in case of being a singularity
-    if (theta5(cont10)<0.0001 && theta5(cont10)>-0.0001)
-        if t==1
-            theta_4f=0;
-        else
-            if theta5(cont10)<0
-                for i=1:er(t-1)
-                    if thetaM(5,i,t-1)<0
-                        theta_sing=[theta_sing,abs(thetaM(1:3,i,t-1)-[theta1;theta2;theta3])];
-                    end
-                end
-                a=size(theta_sing,2);
-                [A,B]=min(sum(theta_sing(:,2:a),1));
-            else %theta5 could be < or = 0
-                if theta5(cont10)== 0
-                    
-                    for i=1:er(t-1)
-                        
-                        theta_sing=[theta_sing,abs(thetaM(1:3,i,t-1)-[theta1;theta2;theta3])];
-                        
-                    end
-                    
-                    a=size(theta_sing,2);
-                    [A,B]=min(sum(theta_sing(:,2:a),1));
-                    
-                else %theta5 is <0
-                    for i=1:er(t-1)
-                        if thetaM(5,i,t-1)>0
-                            theta_sing=[theta_sing,abs(thetaM(1:3,i,t-1)-[theta1;theta2;theta3])];
-                        end
-                    end
-                    a=size(theta_sing,2);
-                    [A,B]=min(sum(theta_sing(:,2:a),1)); 
-                    %I am looking basically for the minimum theta4 needed to reach the desired orientation starting from 
-                    %the previous one (t-1). In this way theta_4f is
-                    %calculated. The overall rotation needed from the
-                    %joints 4 and 6 is calculated as theta_46. Then if
-                    %theta_4f doesn't exists it's assumed to be zero, and
-                    %the sixth joint will do all the rotation, otherwise we
-                    %rotate joint-4 of theta_4f and the joint-6 of the
-                    %remaining angle (theta_46 - theta_4f)
-                    
-                    
-                end
-                
-            end
-            
-            theta_4f=thetaM(4,B,t-1);
-        end
-        
-        theta_46(1)=atan2(Rzyz(2,1),Rzyz(1,1));
-        
-        try
-        theta6(cont10)= theta_46- theta_4f;
-        theta4(cont10)=theta_4f;%assumption: the previous theta4
-        catch %% if there is no previous theta4f, error rise, then 0 is assumed in catch
-            theta6(cont10)= theta_46;
-            theta4(cont10)=0;%assumption: the previous theta4
-        end
-        
-    else %IS NOT a singularity
-        %then we calculate the other angles with the Euler equations
-        theta4(cont10)=atan2(Rzyz(1,3)/sin(theta5(cont10)),-Rzyz(2,3)/sin(theta5(cont10)));
-        theta6(cont10)=atan2(Rzyz(3,1)/sin(theta5(cont10)),Rzyz(3,2)/sin(theta5(cont10)));
-    end
-end
-	 */
+	
 }

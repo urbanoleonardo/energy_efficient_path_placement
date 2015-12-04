@@ -1,4 +1,6 @@
 import java.lang.Math;
+import java.lang.Object;
+
 
 
 public class Performance_test {
@@ -9,6 +11,45 @@ public class Performance_test {
 		// TODO Auto-generated method stub
 		
 		Test_Math();
+		//Test_variable_Init(); //no difference essentially
+
+	}
+	
+	public static void Test_variable_Init(){
+		
+		double dummy = 12.34;
+		
+		long time3 = System.nanoTime();
+		
+		for(int i = 0; i < TIMES; i++)
+		{
+			double test2;
+			for(int j = 0; j < 2 ; j++)
+			{
+				test2 = dummy;
+			}
+			
+		}
+		long time4 = System.nanoTime();
+		
+		
+		long time1 = System.nanoTime();
+		
+		for(int i = 0; i < TIMES; i++)
+		{
+			for(int j = 0; j < 2 ; j++)
+			{
+				double test1 = dummy;
+			}
+			
+		}
+		long time2 = System.nanoTime();
+		
+	
+		
+		
+		System.out.println("Time for the first loop: " + (time2-time1)/1E9);
+		System.out.println("Time for the second loop: " + (time4-time3)/1E9);
 
 	}
 	
@@ -40,9 +81,10 @@ public class Performance_test {
 		}
 		long time4 = System.nanoTime();
 		
+	
+		
 		System.out.println("Time for the first loop: " + (time2-time1)/1E9);
 		System.out.println("Time for the second loop: " + (time4-time3)/1E9);
-		
 	}
 
 }
