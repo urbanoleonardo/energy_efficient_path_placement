@@ -116,10 +116,6 @@ public class Robot {
 		{
 			return this.link_length;
 		}
-		if(arg.equalsIgnoreCase("link masses") || arg.equalsIgnoreCase("link_masses"))
-		{
-			return this.link_masses;
-		}
 		if(arg.equalsIgnoreCase("joint limits") || arg.equalsIgnoreCase("joint_limits"))
 		{
 			return this.joint_limits;
@@ -233,7 +229,10 @@ public class Robot {
 		String s;
 		String comment_limiter = "%%";
 		String section_limiter = "**--";
-
+		
+		double[][] temp_matr = new double[3][3];
+		
+		
 		int row_number = 0; //it's used to remember which row of the matrix we are copying
 		//Section where I still switch but I instantiate the attributes of the robot
 		//to be filled with data from the file
@@ -243,7 +242,7 @@ public class Robot {
 			this.link_length = new double[this.dof][2];
 			break;
 		case 3:
-			this.link_masses = new double[this.dof][1];
+			this.link_masses = new double[this.dof];
 			break;
 		case 4:
 			this.joint_limits = new double[this.dof][2];
@@ -251,6 +250,9 @@ public class Robot {
 		case 5:
 			this.cog_Matrix = new double[3][this.dof];
 			break;
+		case 6:
+			this.inertia_tens = new ArrayList<double[][]>();
+			
 
 		default:
 			break;
@@ -280,10 +282,13 @@ public class Robot {
 			}
 			String[] tokens = s.split(" ");
 			//System.out.println("the number of tokens in this string is " + tokens.length);
+			System.out.println(" ");
 			for(int i = 0; i<tokens.length; i++ )
 			{
-				System.out.println(tokens[i]);
+				
+				System.out.print(tokens[i] + " ");
 			}
+			
 			switch(section){
 			case 1: 
 				this.dof = Integer.parseInt(tokens[0]);
@@ -296,7 +301,7 @@ public class Robot {
 			case 3:
 				for(int i = 0; i<tokens.length; i++ )
 				{
-					this.link_masses[i][0] = Double.parseDouble(tokens[i]);
+					this.link_masses[i] = Double.parseDouble(tokens[i]);
 				}
 				break;
 			case 4:
@@ -322,6 +327,18 @@ public class Robot {
 				row_number++;
 				break;
 			case 6:
+				
+				temp_matr[row_number][0] = Double.parseDouble(tokens[0]);
+				temp_matr[row_number][1] = Double.parseDouble(tokens[1]);
+				temp_matr[row_number][2] = Double.parseDouble(tokens[2]);
+				row_number++;
+				
+				if(row_number == 3)
+				{
+					row_number = 0;
+					this.inertia_tens.add(temp_matr);
+				}
+				
 				break;
 			case 7:
 				break;
@@ -354,6 +371,9 @@ public class Robot {
 			break;
 		case 5:
 			sec = "Center of Gravity ";
+			break;
+		case 6:
+			sec = "Inertia Tensors ";
 			break;
 
 		default:
