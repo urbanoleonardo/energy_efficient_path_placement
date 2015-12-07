@@ -16,9 +16,8 @@ public class Robot {
 	private String model;
 	private int dof;
 	private double[][] link_length;
-	private double[][] link_masses;
-	private double[][] inertia_matr;
-	private double[][] inertia_tens;
+	private double[] link_masses;
+	private List<double[][]> inertia_tens;
 	private double[][] joint_limits;
 	private double[][] cog_Matrix; //center of gravity matrix (SolidWorks)
 	Target location;
@@ -106,7 +105,7 @@ public class Robot {
 
 		/*
 		 * Function to get the parameters of the robot.
-		 * Consider using only some key words no matter the overall string given in input maybe
+		 * Consider using only some keywords no matter the overall string given in input maybe
 		 * I don't think it would be better having a single method for every different parameter
 		 * just because they are all of the same type;
 		 */
@@ -153,7 +152,82 @@ public class Robot {
 	//Part of PRIVATE methods that are used/called by inner methods
 	//
 
+	private void initializeArray(double[] array){
 
+		for(int i = 0; i < array.length; i++)
+			array[i] = 0;
+
+	}
+	
+	private void initializeMatrix(double[][] m){
+
+		for(int i = 0; i < m.length; i++)
+			for(int j = 0; j < m[0].length; j++)
+				m[i][j] = 0;
+
+	}
+	
+	private double[][] MultiplyScalMatr(double scalar, double[][] m){
+
+		for(int i = 0; i < m.length; i++)
+			for(int j = 0; j < m[0].length; j++)
+				m[i][j] = scalar*m[i][j];
+
+		return m;
+
+	}
+	
+	private double[][] MultiplyMatrices(double[][] left, double[][] right){
+
+		/*
+		 * Function implemented to multiply 2 matrices (useful in Hto_from)
+		 */
+
+		double[][] M = new double[left.length][right[0].length];
+
+		for(int row = 0; row < M.length; row++)
+			for(int column = 0; column < M[0].length; column++)
+				M[row][column] = 0;
+
+		if(left[0].length == right.length){
+
+			for(int row = 0; row < M.length; row++)
+				for(int column = 0; column < M[0].length; column++)
+					for(int i = 0; i < left[0].length; i++)
+						M[row][column] += left[row][i] * right[i][column];
+
+		}else{
+			System.out.println("The dimension of the matrices do not agree. [m*n n*p = m*p]");
+		}
+
+		return M;
+
+	}
+	
+	private double[][] SubtractMatrices(double[][] m1, double[][] m2){
+
+		/*
+		 * It returns m = m1 - m2.
+		 * If dimensions do not match, it returns null matrix of dim = m1.
+		 */
+
+		double[][] m = new double[m1.length][m1[0].length];
+
+		if(m2.length == m1.length && m2[0].length == m1[0].length){
+
+			for(int i = 0; i < m1.length; i++)
+				for(int j = 0; j < m1[0].length; j++)
+					m[i][j] = m1[i][j] - m2[i][j];
+
+		}else{
+			System.out.println("Matrices dimension do not match.");
+			initializeMatrix(m);
+		}
+
+		return m;
+
+	}
+	
 	private void CopyRobotParameters (BufferedReader b, int section) throws IOException
 	{
 		String s;
@@ -289,33 +363,6 @@ public class Robot {
 		System.out.println("The current section being compiled is: " + sec);
 	}
 
-	private double[][] MultiplyMatrices(double[][] left, double[][] right){
-
-		/*
-		 * Function implemented to multiply 2 matrices (useful in Hto_from)
-		 */
-
-		double[][] M = new double[left.length][right[0].length];
-
-		for(int row = 0; row < M.length; row++)
-			for(int column = 0; column < M[0].length; column++)
-				M[row][column] = 0;
-
-		if(left[0].length == right.length){
-
-			for(int row = 0; row < M.length; row++)
-				for(int column = 0; column < M[0].length; column++)
-					for(int i = 0; i < left[0].length; i++)
-						M[row][column] += left[row][i] * right[i][column];
-
-		}else{
-			System.out.println("The dimension of the matrices do not agree. [m*n n*p = m*p]");
-		}
-
-		return M;
-
-	}
-
 	private Target Hto_from(int from, int to, double[] joint_values){
 
 		/* It returns the homogeneous matrix (H) representing position and orientation of
@@ -324,7 +371,7 @@ public class Robot {
 		 * joint_values = values of the joint coordinates
 		 */
 
-		List<double[][]> H_indexed = new ArrayList<double[][]>(this.dof + 1);
+		List<double[][]> H_indexed = new ArrayList<double[][]>();
 		Target T;
 		double[][] I = new double[4][4];
 		double[][] H = new double[4][4];
@@ -419,18 +466,11 @@ public class Robot {
 
 	}
 
-	private void initializeArray(double[] array){
-
-		for(int i = 0; i < array.length; i++)
-			array[i] = 0;
-
-	}
-
-	private void joint_distances(double[][] cg){
+	private void cog_wrtFrame0(double[][] cg){
 
 		/*
 		 * Input: cg(cog_Matrix) with respect to global frames (SolidWorks)
-		 * Output: cg coordinates with respect to frame 0
+		 * Output: It gives you cog_Matrix (cg) values with respect to frame 0
 		 */
 
 
@@ -439,9 +479,10 @@ public class Robot {
 		double[][] cg0 = new double[3][this.dof];
 		double[][] cg0_i = new double[3][1];
 		Target T0_i = new Target();
+		double temp;
 
 		/*
-		 * I divide cg by 1000 in order to get mm instead of m
+		 * I divide cg by 1000 in order to get m instead of mm
 		 */
 		for(int i = 0; i < cg.length; i++)
 			for(int j = 0; j < cg[0].length; j++)
@@ -464,6 +505,70 @@ public class Robot {
 			cg0[2][i] = cg0_i[2][0];
 
 		}
+
+	}
+
+	private List<double[][]> inTensi_wrtFramei(List<double[][]> inTens_sw){
+
+		/*
+		 * Input: Number of the joint of which you want the inertia tensors
+		 * Output: Inertia tensors (3x3 matrix)
+		 */
+
+		int linkNum = 0;
+		double prop = 98000/46249; /* ??????????????????? */
+		double[] joint_values = new double[this.dof];
+		double[][] BUFFER = new double[3][3];
+		double[][] inTensi_i = new double[3][3];
+		double[][] inTens0_i = new double[3][3];
+		List<double[][]> inTens_prop = new ArrayList<double[][]>();
+		List<double[][]> inTens = new ArrayList<double[][]>();
+		Target T = new Target();
+
+		cog_wrtFrame0(this.cog_Matrix);
+
+		inTens_prop = inTens_sw;
+		/* I multiply inTens_00 * prop */
+		for(double[][] link:inTens_prop)
+			for(int i = 0; i < 3; i++)
+				for(int j = 0; j < 3; j++)
+					link[i][j] *= prop;
+
+		/* */
+		for(double[][] link:inTens_sw){
+
+			link[0][0] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[1][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
+			link[1][1] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[0][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
+			link[2][2] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[0][linkNum], 2) + Math.pow(this.cog_Matrix[1][linkNum], 2));
+
+			link[0][1] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[1][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
+			link[1][0] = link[0][1];
+			link[0][2] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[1][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
+			link[2][0] = link[0][2];
+			link[1][2] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[0][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));;
+			link[2][1] = link[1][2];
+
+			inTens0_i = SubtractMatrices(inTens_prop.get(linkNum), link);
+
+			initializeArray(joint_values);
+
+			T = Hto_from(0, linkNum, joint_values);
+			/* I have to perform the following calculation: Ii_i = R0_i^(-1)*I0_i*R0_i
+			 * to do so, I use a buffer 
+			 */
+			BUFFER = MultiplyMatrices(T.getInvRotation(), inTens0_i);
+			inTensi_i = MultiplyMatrices(BUFFER, T.getRotation());
+
+			/* I need inTens to be in kg*m^2(so far they were g*mm^2)
+			 *  then I multiply every element of the list for 10^-9 */			
+			inTensi_i = MultiplyScalMatr(Math.pow(10, -9), inTensi_i);
+			inTens.add(inTensi_i);
+
+			linkNum++;
+
+		}
+
+		return inTens;
 
 	}
 
