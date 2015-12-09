@@ -7,7 +7,7 @@ public class Path {
  * The "Father" method INTERPOLATE will generate basically a straight line
  * while for other paths like the square one (that will be sons) the method will behave differently 
  */
-	private Target intial_position;
+	private Target initial_position;
 	private Target final_position;
 	private Trajectory interpolated_path; //the Trajectory will have also the initial and 
 										  // final position within of course.
@@ -23,7 +23,7 @@ public class Path {
 	
 	public Path(Target initial_position, Target final_position, double t_sample, double x_sample)
 	{
-		this.intial_position = initial_position;
+		this.initial_position = initial_position;
 		this.final_position = final_position;
 		this.t_sample = t_sample;
 		this.x_sample = x_sample;
@@ -31,7 +31,7 @@ public class Path {
 	
 	public Path(Target initial_position, Target final_position)
 	{
-		this.intial_position = initial_position;
+		this.initial_position = initial_position;
 		this.final_position = final_position;
 	}
 	//END part of constructor
@@ -40,7 +40,7 @@ public class Path {
 	public Target[] GetPathPositions()
 	{
 		Target[] PathPositions = new Target[2];
-		PathPositions[0] = this.intial_position;
+		PathPositions[0] = this.initial_position;
 		PathPositions[1] = this.final_position;
 		return PathPositions;
 	}
@@ -92,7 +92,7 @@ public class Path {
 		
 		
 		double acc_time = this.max_acc/this.max_vel;
-		double[] init_pos = this.intial_position.getPosition();
+		double[] init_pos = this.initial_position.getPosition();
 		double[] fin_pos = this.final_position.getPosition();
 		
 		double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
@@ -110,7 +110,7 @@ public class Path {
 		
 		double new_position;
 		
-		interpolatedPath.Points.add(this.intial_position);
+		interpolatedPath.Points.add(this.initial_position);
 		interpolatedPath.TimeInstants.add(time);
 		
 		if(((2*acc_time)*this.max_vel/2.0) < distance)
@@ -167,12 +167,12 @@ public class Path {
 				}
 			}
 			
-			double[] position_vector = vector_subtract(this.final_position.getPosition(), this.intial_position.getPosition());
+			double[] position_vector = vector_subtract(this.final_position.getPosition(), this.initial_position.getPosition());
 			position_vector = vector_MultiplyConstant(position_vector, new_position/distance);
-			position_vector = vector_sum(position_vector, this.intial_position.getPosition());
+			position_vector = vector_sum(position_vector, this.initial_position.getPosition());
 			
 			//for the moment I'm not changing the rotation matrix
-			Target newPointInTrajectory = new Target(position_vector, this.intial_position.getRotation());
+			Target newPointInTrajectory = new Target(position_vector, this.initial_position.getRotation());
 			
 			//add the new target to the trajectory
 			interpolatedPath.Points.add(newPointInTrajectory);
