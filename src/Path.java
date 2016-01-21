@@ -39,6 +39,11 @@ public class Path {
 	//Part of GET methods
 	public Target[] GetPathPositions()
 	{
+		
+		/*
+		 * It returns a vector of Target with initial and final position
+		 */
+		
 		Target[] PathPositions = new Target[2];
 		PathPositions[0] = this.initial_position;
 		PathPositions[1] = this.final_position;
@@ -83,8 +88,9 @@ public class Path {
 	public Trajectory Interpolate(){
 		/*
 		 * This method interpolates the Path according to X_sample and a 
-		 * Trapezoidal Velocity Profile (TVP). The number of points of the Trajectory
-		 * strictly depends on the value of X_sample.
+		 * Trapezoidal Velocity Profile (TVP). 
+		 * (see literature at http://home.deib.polimi.it/rocco/cir/Motion%20planning.pdf)
+		 * The number of points of the Trajectory strictly depends on the value of X_sample.
 		 * This is the FATHER Interpolate method, that interpolates along a straight line
 		 * from an initial position to a final position. 
 		 */

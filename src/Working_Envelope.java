@@ -6,15 +6,15 @@
 public class Working_Envelope {
 
 	/*
-	 * 3x1 array with x, y, z minimum values [m]
+	 * array with x, y, z minimum values [m]
 	 */
-	private float[][] min_values;
+	private double[] min_values;
 	/*
-	 * 3x1 array with x, y, z maximum values [m]
+	 * array with x, y, z maximum values [m]
 	 */
-	private float[][] max_values;
+	private double[] max_values;
 
-	private float resolution;
+	private double resolution;
 
 	public static void main(String[] args){
 
@@ -22,59 +22,76 @@ public class Working_Envelope {
 
 	/*
 	 * Constructor considering only the max values of the volume. In this case you
-	 * consider null min_values array and a defaul resolution = 0.05 */
-	public void Working_Envelope(float[][] max){
+	 * consider null min_values array and a default resolution = 0.05 
+	 */
+	
+	public Working_Envelope(double[] max){
 
-		min_values = new float[3][1];
-		max_values = new float[3][1];
+		min_values = new double[3];
+		max_values = new double[3];
 
-		for(int i = 0; i < min_values.length; i++)
-			for(int j = 0; j < min_values[0].length; j++){
-				min_values[i][j] = 0;
-				max_values[i][j] = max[i][j];
+		for(int i = 0; i < min_values.length; i++){
+				min_values[i] = 0;
+				max_values[i] = max[i];
 			}
 
-		resolution = (float) 0.05;
+		resolution = (double) 0.05;
 
 	}
-
+	
 	/*
 	 * Constructor considering also min_values.
 	 */
-	public void Working_Envelope(float[][] min, float[][] max, float res){
+	public Working_Envelope(double[] min, double[] max){
 
-		min_values = new float[3][1];
-		max_values = new float[3][1];
+		min_values = new double[3];
+		max_values = new double[3];
 
-		for(int i = 0; i < min_values.length; i++)
-			for(int j = 0; j < min_values[0].length; j++){
-				min_values[i][j] = min[i][j];
-				max_values[i][j] = max[i][j];
+		for(int i = 0; i < min_values.length; i++){
+				min_values[i] = min[i];
+				max_values[i] = max[i];
+			}
+
+		resolution = (double) 0.05;
+
+	}
+	
+	/*
+	 * Constructor considering also resolution.
+	 */
+	public Working_Envelope(double[] min, double[] max, double res){
+
+		min_values = new double[3];
+		max_values = new double[3];
+
+		for(int i = 0; i < min_values.length; i++){
+				min_values[i] = min[i];
+				max_values[i] = max[i];
 			}
 
 		resolution = res;
 
 	}
 
-	public float[][] getMinValues(){
+	public double[] getMinValues(){
 
 		return min_values;
 
 	}
 
-	public float[][] getMaxValues(){
+	public double[] getMaxValues(){
 
 		return max_values;
 
 	}
 
-	public float getResolution(){
+	public double getResolution(){
 
 		return resolution;
 
 	}
 
-	public void setResolution(float res){
+	public void setResolution(double res){
 
 		resolution = res;
 
