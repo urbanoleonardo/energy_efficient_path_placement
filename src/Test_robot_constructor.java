@@ -1,3 +1,13 @@
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
+import org.dom4j.*;
+import org.jaxen.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 
 public class Test_robot_constructor {
 
@@ -57,10 +67,10 @@ public class Test_robot_constructor {
 				{0.0, 0.0, 0.0, 1.0}
 		};
 		
-		double x_sample = 0.1;
-		double t_sample = 0.1;
-		double acceleration = 2.0;
-		double velocity = 6.0;
+		double x_sample = 1E-3;
+		double t_sample = 0.01;
+		double acceleration = 1.0;
+		double velocity = 0.2;
 		
 		Target test_target1 = new Target(matrix1);
 		Target test_target2 = new Target(matrix2);
@@ -70,16 +80,22 @@ public class Test_robot_constructor {
 		test_path.SetMaxVel(velocity);
 		test_path.Interpolate();
 		Trajectory test_output = test_path.GetTrajectory();
-		System.out.println("Numero di punti : " + test_output.Points.size());
+		System.out.println("Number of points : " + test_output.Points.size());
 		
-		
+		/*
 		for(Target i : test_output.Points)
 		{
 			double[] position_vector = i.getPosition();
 			
 			System.out.println("Punto : " + position_vector[0] + " " + position_vector[1] + " " + position_vector[2]);
 		}
+		*/
 		
+		//double[][][] ThetaM = new double[2][3][4];
+		
+		//System.out.println("La seconda dimensione di ThetaM è : " + ThetaM[0].length);
+		
+		/*
 		//Testing Target methods
 		
 		double[][] matrix3 = {
@@ -98,7 +114,7 @@ public class Test_robot_constructor {
 				{0.0, 0.0, 0.0, 1}
 		};
 		*/
-		
+		/*
 		double[][] test_ident = MultiplyMatrices(test,matrix3);
 		
 		System.out.println("Righe : " + test_ident.length + " Colonne : " + test_ident[0].length);
@@ -111,7 +127,101 @@ public class Test_robot_constructor {
 			}
 			System.out.println(" ");
 		}
+		*/
 		
+		
+		
+		/*---------------------
+		 * XML TESTING PART
+		 * --------------------
+		 */
+		try {
+			 String FilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
+ 	         File inputFile = new File(FilePath);
+	         SAXReader reader = new SAXReader();
+	         Document document = reader.read( inputFile );
+	         
+	         
+	         System.out.println("Root element : " + document.getRootElement().getName());
+	         String rootName = document.getRootElement().getName();
+	         
+	         Element root = document.getRootElement();
+	         
+	         List<Node> nodes = document.selectNodes(rootName + "/link");
+	         
+	         
+	         for(Node node : nodes)
+	         {
+	        	// int linkNumber = Integer.parseInt(node.selectSingleNode("number").getText());
+	        	 int linkNumber = (int) Double.parseDouble(node.selectSingleNode("number").getText());
+	        	 double linkMass = Double.parseDouble(node.selectSingleNode("mass").getText());
+	        	 System.out.println("\nCurrent Element : " + node.getName() + " " + linkNumber);
+	        	 System.out.println("Mass = " + linkMass );
+	        	 
+	         }
+	         
+	         int DoF =(int) Double.parseDouble(document.selectSingleNode(rootName + "/DOF").getText());
+	         System.out.println("Degrees of Freedom = " + DoF);
+	         
+		}
+		catch (DocumentException e) {
+	         e.printStackTrace();
+	      }
+		
+		
+		/*---------------------
+		 * XML ROBOT CONSTRUCTOR TESTING PART
+		 * --------------------
+		 */
+		 String FilePathXML = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
+		
+		Robot newRobotXML = new Robot(FilePathXML, true);
+		
+		DOF = newRobotXML.getDOF();
+		System.out.println("The degree of freedom of the robot are: " + DOF); //checked and working
+		System.out.println("The links lengths are the following: ");
+		linkLength = newRobotXML.getParameters("link length");
+		for(int i=0; i<linkLength.length; i++) //checked and working
+		{
+			for(int j=0;j<linkLength[0].length;j++)
+			{
+				System.out.print(linkLength[i][j] + " ");
+			}
+			System.out.println("");
+		}
+		
+		
+		jointLimit = newRobotXML.getParameters("joint limits");
+		for(int i=0; i<jointLimit.length; i++) //checked and working
+		{
+			for(int j=0;j<jointLimit[0].length;j++)
+			{
+				System.out.print(jointLimit[i][j]/Math.PI + " ");
+			}
+			System.out.println("");
+		}
+		
+		
+		COG = newRobotXML.getParameters("center of gravity");
+		for(int i=0; i<COG.length; i++) //checked and working
+		{
+			for(int j=0;j<COG[0].length;j++)
+			{
+				System.out.print(COG[i][j] + " ");
+			}
+			System.out.println("");
+		}
+		
+
+		double[][] InerT = newRobotXML.getParameters("center of gravity");
+		for(int i=0; i<COG.length; i++) //checked and working
+		{
+			for(int j=0;j<COG[0].length;j++)
+			{
+				System.out.print(COG[i][j] + " ");
+			}
+			System.out.println("");
+		}
 	}
 	
 	public static double[][] MultiplyMatrices(double[][] left, double[][] right){
@@ -146,5 +256,7 @@ public class Test_robot_constructor {
 		}
 
 		return M;
-}
+	}
+	
+	
 }

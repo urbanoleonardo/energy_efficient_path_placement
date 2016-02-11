@@ -11,6 +11,8 @@ public class Trajectory {
  */
 	public ArrayList<Target> Points = new ArrayList<Target>();
 	public ArrayList<Double> TimeInstants = new ArrayList<Double>();
+	public ArrayList<double[]> Ext_Torques = new ArrayList<double[]>();
+	public ArrayList<double[]> Ext_Forces = new ArrayList<double[]>();
 	
 	
 }

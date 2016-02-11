@@ -6,8 +6,14 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dom4j.io.SAXReader;
+import org.dom4j.*;
+import org.jaxen.*;
+import java.io.File;
+
 /*
  * TODO it defines all the parameters of the robot
+ *  - use XML standard to define the constructors and the data
  * 
  */
 
@@ -86,6 +92,12 @@ public class Robot {
 		}
 
 	}
+	
+	public Robot(String xml_FilePath, boolean xml_true){
+		
+		xmlBuilder(xml_FilePath);
+	}
+	
 
 	//END part of CONSTRUCTORS
 
@@ -127,7 +139,18 @@ public class Robot {
 
 		return defaultRes; 
 	}
+	
+	public List<double[][]> getInerTens(){
+		return this.inertia_tens;
+	}
+	
+	public double[][] getSingleInerTens(int index){
+		return this.inertia_tens.get(index);
+	}
 
+	public double[] getMass(){
+		return this.link_masses;
+	}
 	//END of GET methods
 
 
@@ -139,7 +162,110 @@ public class Robot {
 	//END of SET methods
 
 	//OTHER PUBLIC methods
+	
+	public Target Hto_from(int from, int to, double[] joint_values){
 
+		/* It returns the homogeneous matrix (H) representing position and orientation of
+		 * frame "from" with respect to frame "to" 
+		 * 
+		 * joint_values = values of the joint coordinates
+		 */
+
+		List<double[][]> H_indexed = new ArrayList<double[][]>();
+		Target T;
+		double[][] I = new double[4][4];
+		double[][] H = new double[4][4];
+		int max;
+		int min;
+
+		for(int i = 0; i < 4; i++)
+			for(int j = 0; j < 4; j++)
+				if(i == j)
+					I[i][j] = 1;
+				else I[i][j] = 0;
+
+		H = I;
+
+		if(from == to){
+			T = new Target(H);
+			return T;
+		}
+
+
+		double[][] H0_1 = {
+				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, 0},
+				{Math.sin(joint_values[1]), Math.cos(joint_values[1]), 0, 0},
+				{0, 0, 1, this.link_length[1][2]},
+				{0, 0, 0, 1}
+		};
+		double[][] H1_2 = {
+				{Math.cos(joint_values[2]), -Math.sin(joint_values[2]), 0, this.link_length[2][1]},
+				{0, 0, -1, 0},
+				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, 0},
+				{0, 0, 0, 1}
+		};
+		double[][] H2_3 = {
+				{Math.cos(joint_values[3]), -Math.sin(joint_values[3]), 0, 0},
+				{Math.sin(joint_values[3]), Math.cos(joint_values[3]), 0, 0},
+				{0, 0, 1, this.link_length[3][2]},
+				{0, 0, 0, 1}
+		};
+		double[][] H3_4 = {
+				{0, 0, 1, this.link_length[4][1] + this.link_length[5][1]},
+				{Math.sin(joint_values[4]), Math.cos(joint_values[4]), 0, 0},
+				{-Math.cos(joint_values[4]), Math.sin(joint_values[4]), 0, 0},
+				{0, 0, 0, 1}
+		};
+		double[][] H4_5 = {
+				{0, 0, -1, 0},
+				{Math.sin(joint_values[5]), Math.cos(joint_values[5]), 0, 0},
+				{Math.cos(joint_values[5]), -Math.sin(joint_values[5]), 0, 0},
+				{0, 0, 0, 1}
+		};
+		double[][] H5_6 = {
+				{0, 0, 1, 0},
+				{Math.sin(joint_values[6]), Math.cos(joint_values[6]), 0, 0},
+				{-Math.cos(joint_values[6]), Math.sin(joint_values[6]), 0, 0},
+				{0, 0, 0, 1}
+		};
+		double[][] H6_endEff = {
+				{1, 0, 0, 0},
+				{0, 1, 0, 0},
+				{0, 0, 1, 0},
+				{0, 0, 0, 1}
+		};
+
+		H_indexed.add(H0_1);
+		H_indexed.add(H1_2);
+		H_indexed.add(H2_3);
+		H_indexed.add(H3_4);
+		H_indexed.add(H4_5);
+		H_indexed.add(H5_6);
+		H_indexed.add(H6_endEff);
+
+
+		if(from > to){
+			max = from;
+			min = to;
+		}else{
+			max = to;
+			min = from;
+		}
+
+		for(int i = max - 1; i >= min; i--)
+			H = MultiplyMatrices(H_indexed.get(i), H);
+
+		T = new Target(H);
+
+		if(from < to){
+			H = T.getInvHomMatrix();
+			T.setHomMatrix(H);
+		}
+
+		return T;
+
+	}
+	
 
 
 	//END of PUBLIC methods
@@ -327,7 +453,6 @@ public class Robot {
 				row_number++;
 				break;
 			case 6:
-				
 				temp_matr[row_number][0] = Double.parseDouble(tokens[0]);
 				temp_matr[row_number][1] = Double.parseDouble(tokens[1]);
 				temp_matr[row_number][2] = Double.parseDouble(tokens[2]);
@@ -383,108 +508,7 @@ public class Robot {
 		System.out.println("The current section being compiled is: " + sec);
 	}
 
-	private Target Hto_from(int from, int to, double[] joint_values){
-
-		/* It returns the homogeneous matrix (H) representing position and orientation of
-		 * frame "from" with respect to frame "to" 
-		 * 
-		 * joint_values = values of the joint coordinates
-		 */
-
-		List<double[][]> H_indexed = new ArrayList<double[][]>();
-		Target T;
-		double[][] I = new double[4][4];
-		double[][] H = new double[4][4];
-		int max;
-		int min;
-
-		for(int i = 0; i < 4; i++)
-			for(int j = 0; j < 4; j++)
-				if(i == j)
-					I[i][j] = 1;
-				else I[i][j] = 0;
-
-		H = I;
-
-		if(from == to){
-			T = new Target(H);
-			return T;
-		}
-
-
-		double[][] H0_1 = {
-				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, 0},
-				{Math.sin(joint_values[1]), Math.cos(joint_values[1]), 0, 0},
-				{0, 0, 1, this.link_length[1][2]},
-				{0, 0, 0, 1}
-		};
-		double[][] H1_2 = {
-				{Math.cos(joint_values[2]), -Math.sin(joint_values[2]), 0, this.link_length[2][1]},
-				{0, 0, -1, 0},
-				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, 0},
-				{0, 0, 0, 1}
-		};
-		double[][] H2_3 = {
-				{Math.cos(joint_values[3]), -Math.sin(joint_values[3]), 0, 0},
-				{Math.sin(joint_values[3]), Math.cos(joint_values[3]), 0, 0},
-				{0, 0, 1, this.link_length[3][2]},
-				{0, 0, 0, 1}
-		};
-		double[][] H3_4 = {
-				{0, 0, 1, this.link_length[4][1] + this.link_length[5][1]},
-				{Math.sin(joint_values[4]), Math.cos(joint_values[4]), 0, 0},
-				{-Math.cos(joint_values[4]), Math.sin(joint_values[4]), 0, 0},
-				{0, 0, 0, 1}
-		};
-		double[][] H4_5 = {
-				{0, 0, -1, 0},
-				{Math.sin(joint_values[5]), Math.cos(joint_values[5]), 0, 0},
-				{Math.cos(joint_values[5]), -Math.sin(joint_values[5]), 0, 0},
-				{0, 0, 0, 1}
-		};
-		double[][] H5_6 = {
-				{0, 0, 1, 0},
-				{Math.sin(joint_values[6]), Math.cos(joint_values[6]), 0, 0},
-				{-Math.cos(joint_values[6]), Math.sin(joint_values[6]), 0, 0},
-				{0, 0, 0, 1}
-		};
-		double[][] H6_endEff = {
-				{1, 0, 0, 0},
-				{0, 1, 0, 0},
-				{0, 0, 1, 0},
-				{0, 0, 0, 1}
-		};
-
-		H_indexed.add(H0_1);
-		H_indexed.add(H1_2);
-		H_indexed.add(H2_3);
-		H_indexed.add(H3_4);
-		H_indexed.add(H4_5);
-		H_indexed.add(H5_6);
-		H_indexed.add(H6_endEff);
-
-
-		if(from > to){
-			max = from;
-			min = to;
-		}else{
-			max = to;
-			min = from;
-		}
-
-		for(int i = max - 1; i >= min; i--)
-			H = MultiplyMatrices(H_indexed.get(i), H);
-
-		T = new Target(H);
-
-		if(from < to){
-			H = T.getInvHomMatrix();
-			T.setHomMatrix(H);
-		}
-
-		return T;
-
-	}
+	
 
 	private void cog_wrtFrame0(double[][] cg){
 
@@ -516,8 +540,9 @@ public class Robot {
 
 			initializeArray(joint_values);
 
-			/* From i to 0 because I want the inverse matrix */
-			T0_i = Hto_from(0, i, joint_values);
+			/* From i to 0 because I want the inverse matrix
+			 * LEO RIGUARDA I+1 NELLA FORMULA SOTTO */
+			T0_i = Hto_from(0, i+1, joint_values);
 			cg0_i = MultiplyMatrices(T0_i.getInvRotation(), cg_i);
 
 			cg0[0][i] = cg0_i[0][0];
@@ -592,6 +617,86 @@ public class Robot {
 
 	}
 
+	private void xmlBuilder(String FilePath){
+		
+		try{
+			 File inputFile = new File(FilePath);
+	         SAXReader reader = new SAXReader();
+	         Document document = reader.read( inputFile );
+	         
+	         
+	         String rootName = document.getRootElement().getName();
+	         int DoF =(int) Double.parseDouble(document.selectSingleNode(rootName + "/DOF").getText());
+	         
+	         initializeVariables(DoF); //Initialization of all Robot variables according to the number of DOF
+	         
+	         List<Node> links = document.selectNodes(rootName + "/link");
+	         
+	         for(Node link : links)
+	         {
+	        	 /*
+	     		 * In this method the link in input is read according to the XML format and
+	     		 * its data are retrieved and used to fill Robot's matrices.
+	     		 * 
+	     		 * The variable initialization might be verbose but makes clearer the reading of the
+	     		 * XML file as he proceeds. All the variables are first instanced and then copied into
+	     		 * the Robot's private variables.
+	     		 */
+	        	 
+	        	 int linkNumber = (int) Double.parseDouble(link.selectSingleNode("number").getText()) - 1;
+	        	 Node node_length = document.selectSingleNode(rootName + "/link/length");
+	        	 double a = Double.parseDouble(link.selectSingleNode("length/a").getText());
+	        	 double d = Double.parseDouble(link.selectSingleNode("length/d").getText());
+	        	 double mass = Double.parseDouble(link.selectSingleNode("mass").getText());
+	        	 double max_limit = Double.parseDouble(link.selectSingleNode("limit/max").getText());
+	        	 double min_limit = Double.parseDouble(link.selectSingleNode("limit/min").getText());
+	        	 double[] CoG = new double[3];
+	        	 CoG[0] = Double.parseDouble(link.selectSingleNode("CoG/x").getText());
+	        	 CoG[1] = Double.parseDouble(link.selectSingleNode("CoG/y").getText());
+	        	 CoG[2] = Double.parseDouble(link.selectSingleNode("CoG/z").getText());
+	        	 
+	        	 double[][] inertia_link = new double[3][3];
+	        	 inertia_link[0][0] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_11").getText());
+	        	 inertia_link[1][1] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_22").getText());
+	        	 inertia_link[2][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_33").getText());
+	        	 inertia_link[0][1] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_12").getText());
+	        	 inertia_link[0][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_13").getText());
+	        	 inertia_link[1][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_23").getText());
+	        	 inertia_link[2][1] = inertia_link[1][2]; //the InertiaTensor matrix is symmetric
+	        	 inertia_link[2][0] = inertia_link[0][2];
+	        	 inertia_link[1][0] = inertia_link[0][1];
+	        	 
+	        	 this.link_length[linkNumber][0] = a;
+	        	 this.link_length[linkNumber][1] = d;
+	        	 this.link_masses[linkNumber] = mass;
+	        	 this.joint_limits[linkNumber][0] = min_limit * Math.PI / 180;
+	        	 this.joint_limits[linkNumber][1] = max_limit * Math.PI / 180;
+	        	 
+	        	 for(int i=0; i < CoG.length; i++){this.cog_Matrix[i][linkNumber] = CoG[i];}
+	        	 
+	        	 this.inertia_tens.add(linkNumber, inertia_link);
+	        	 
+	         }
+	         
+		}
+		catch(DocumentException e){
+			System.out.println("Check that the FilePath name is correct please. Unable to locate the file ");
+			e.printStackTrace();
+		}
+	}
+	
+	private void initializeVariables(int DOF){
+		
+		this.dof = DOF;
+		this.link_length = new double[DOF][2];
+		this.link_masses = new double[DOF];
+		this.joint_limits = new double[DOF][2];
+		this.cog_Matrix = new double[3][DOF];
+		this.inertia_tens = new ArrayList<double[][]>();
+		
+	}
+	
+	
 	// END of PRIVATE methods
 
 
