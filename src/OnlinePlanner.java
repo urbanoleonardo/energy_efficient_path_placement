@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /*
 TO DO 
 decide how to get the current position of the robot, so the starting point that is
@@ -12,6 +15,13 @@ public class OnlinePlanner implements Runnable{
 	
 	private double[][] link_length;
 	private double[][] joint_limits;
+	private double[] mass;
+	private List<double[][]> inertia_tens;
+	
+	private double[][][] thetaM;
+	
+	private double[][] r_ici; //it has to be structured as 6x3 matrix to work down in the dynamic analysis
+	private double[][] r_c; //6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
 	
 	
 	public OnlinePlanner(Target[] targets, Robot robot)
@@ -21,15 +31,57 @@ public class OnlinePlanner implements Runnable{
 		this.robot = robot;
 		this.link_length = robot.getParameters("link_length");
 		this.joint_limits = robot.getParameters("joint_limits");
+		this.mass = robot.getMass();
+		this.inertia_tens = robot.getInerTens();
 	}
 	
 	public void run(){
-		if (targetsLength == 1)
+		
+		//Somebody has to decide them
+		double x_sample = 1E-3;
+		double t_sample = 0.01;
+		
+		// TODO get current position somehow
+		
+	for( int i = 0; i < targetsLength ; i++)
 	{
+		Path path = new Path(currPosition, targets[i], t_sample, x_sample);
+		path.Interpolate();
+		
+		//Trajectory is private so I can interrogate it directly
+		Trajectory path_trajectory = path.GetTrajectory();
+		int trajectory_length = path_trajectory.Points.size();
+
+		thetaM = new double[6][8][trajectory_length + 1];
+
+		
+		for(int j = 0; j < trajectory_length ; j++)
+		{
+			/*
+			 * PART where inverse kinematics is performed
+			 */
+			
+			Online_InvKinematics(path_trajectory.Points.get(j), j);
+		
+		}
+		
+		//Check if the configurations left can be followed by the robot
+		int[] Solution_vector = new int[thetaM[0][0].length];
+		ArrayList<int[]> Solutions = new ArrayList<int[]>();
+		Config_iteration(thetaM, 0, 0, path_trajectory.TimeInstants,Solution_vector, Solutions);
 	
-	}
-	else
-	{
+		int NumOfSolutions = Solutions.size();
+		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
+		
+		if(NumOfSolutions == 0)
+		{
+			System.out.println("Impossible to reach that target. ");
+			break;
+		}
+		//Once we have at least a series of configuration to the final target, the inverse dynamics
+		//can be calculated.
+		
+		Online_InvDynamics(path_trajectory, Solutions);
 		
 	}
 		
@@ -49,20 +101,229 @@ public class OnlinePlanner implements Runnable{
 	}
 	
 	
-	private void Online_Kinematics(Target Current_position, Target Next_position)
+	private int Online_InvKinematics(Target Next_position, int point_i)
 	{
 		/*
 		 * Need to get the coordinates of the WIRST center Pw
 		 */
-	}
-	
-	
-	private void Online_Dynamics()
-	{
 		
+		double[] P = Next_position.getPosition(); //dummy just for test
+		double a6 = link_length[5][0];
+		double[] gw = {a6*Next_position.getRotation()[0][2], a6*Next_position.getRotation()[1][2], a6*Next_position.getRotation()[2][2]};
+		double[] Pw = new double[3];
+		
+		for(int i = 0; i < Pw.length; i++){Pw[i] = P[i] - gw[i];}
+	
+		
+		double[] theta_1 = solve_theta_1(Pw);
+		
+		for(int i = 0; i < theta_1.length; i++)
+		{
+			double[][] theta_23 = solve_theta_23(Pw, theta_1[i], i);
+			
+			if(theta_23[0][0] == 1000 || theta_23[1][0] == 1000)
+			{
+				System.out.println("Trajectory impossible to track: theta_2 or theta_3 assume impossible values");
+				System.out.println("hence, the whole sequence of points is impossible.");
+				return -1; //will be used by the caller to stop the whole trajectory
+			}
+			
+			for(int j = 0; j < theta_23.length; j++)
+			{
+				double theta2 = theta_23[0][j] - Math.PI/2;
+				double theta3 = Math.PI/2 - theta_23[1][j];
+				double[][] theta_456 = solve_theta_456(Next_position, theta_1[i], theta2, theta3, point_i ); 
+				
+				if(theta3 < -Math.PI/2)
+				{
+					theta3 += 2*Math.PI; 
+				}
+				
+				for(int k = 0; k < theta_456[0].length; k++)
+				{
+					int index  = (int) ((i - 1)*Math.pow(2, 2*(i -1)) + (j-1)*2 + (k-1));
+				
+				thetaM[0][index][point_i] = theta_1[i];
+				thetaM[1][index][point_i] =	theta2;
+				thetaM[2][index][point_i] =	theta3;
+				thetaM[3][index][point_i] = theta_456[0][k];
+				thetaM[4][index][point_i] =	theta_456[1][k];
+				thetaM[5][index][point_i] = theta_456[2][k];
+					
+				}
+				
+			}
+		}
+		//CHECK limitation
+		thetaM = this.Apply_Limitation(thetaM, point_i);
+		
+ 		return 1;
 	}
 	
-	private double[] solve_theta1(double[] Pw)
+	
+	private void Online_InvDynamics(Trajectory trajectory, ArrayList<int[]> Kin_Solutions)
+	{
+		for(int[] solution : Kin_Solutions)
+		{
+			int N = trajectory.Points.size();
+			int first_conf = solution[0];
+			double[] prev_theta = new double[6]; 
+			double[] prev_dtheta = {0, 0 , 0, 0 , 0, 0};
+			
+			for(int i = 0; i < prev_theta.length; i++){prev_theta[i] = thetaM[i][first_conf][0];} //initialization of the vector PREV_THETA
+			
+			
+			for(int i = 0 ; i < N; i++)
+			{
+				//MAIN LOOP where the dynamic analysis is performed
+				int index = solution[i+1];
+				double[] theta = new double[6];
+				for(int j = 0; j < 6; j++){ theta[j] = thetaM[j][index][i+1];}
+				double[] dtheta = new double[6];
+				double[] ddtheta = new double[6];
+				
+				for(int j = 0; j < 6; j++){ 
+					dtheta[j] = (theta[j] - prev_theta[j])/trajectory.TimeInstants.get(i);
+					ddtheta[j] = (dtheta[j] - prev_dtheta[j])/trajectory.TimeInstants.get(i);
+				}
+					
+//	FROM MATLAB   T_ex=Ti(:,cont7);
+//                f_ex=fi(:,cont7);
+			
+				//The following two lines will have to be substitued with the proper external forces
+				//and torques when the interpolation has been changed accordingly
+				
+				double[] T_ext = {0,0,0};
+				double[] f_ext = {0,0,0};
+				double[] T = new double[6];
+				
+				T = dynamic_analysis(theta, dtheta, ddtheta, T_ext, f_ext);
+				
+				
+				
+				prev_theta = theta;
+				prev_dtheta = dtheta;
+			}
+		}
+	}
+	
+	private double[] dynamic_analysis(double[] theta, double[] dtheta, double[] ddtheta, double[] T, double[] f){
+		double[] dynamic_solution = new double[6];
+		
+		/*
+		 * alpha_1 		-> angular acceleration
+		 * acc_endL 	-> acceleration of the end of the link
+		 * acc_centerL 	-> acceleration of the center of the link 
+		 */
+		
+		//double[] w_1, alpha_1, acc_centerL1, acc_endL1, w, acc_endL, acc_centerL, dw;
+		double[] w_1 = {0,0,0}, alpha_1 = {0,0,0} , acc_centerL1 = {0,0,0}, acc_endL1 = {0,0,0};
+		double[] z0 = {0,0,1}, g0 = {0,0,-9.81};
+		double[] gi;
+		double[][] w = new double[6][3], alpha = new double[6][3], dw = new double[6][3], acc_endL = new double[6][3];
+		double[][] acc_centerL = new double[6][3];
+		
+ 		double[] dw_1 = {0,0,0};
+		double[][] rot_i;
+		double[][] R0_i;
+		
+		//Forward Recursion
+		for(int i = 0; i < 6; i++)
+		{
+			rot_i = (robot.Hto_from(i+1, i, theta)).getRotation();
+			rot_i = Matrix.Transpose(rot_i);
+			double[] temp = Matrix.AddMatrices(w_1, Matrix.MultiplyScalMatr(dtheta[i], z0)); // (w_0 + z0*dtheta(i))
+			w[i] = Matrix.MultiplyMatrixVector(rot_i, temp); //R0_1' * (w_0 + z0*dtheta(i))
+			
+			temp = Matrix.CrossProduct(w[i], Matrix.MultiplyScalMatr(dtheta[i], z0));
+			double[] temp1;
+			
+			for(int j = 0; j < 3; j++)
+			{
+				alpha[i][j] = alpha_1[j] + z0[j] * ddtheta[i] + temp[j];
+				
+				dw[i][j] = dw_1[j] + z0[j]*ddtheta[i] + temp[j];
+			}
+			alpha[i] = Matrix.MultiplyMatrixVector(rot_i, alpha[i]);  
+			
+			
+			
+			
+			/*
+			 * Update the values for next iteration
+			 */
+		
+			alpha_1 = alpha[i];
+			w_1 = w[i];
+			dw_1 = dw[i];
+			acc_endL1 = acc_endL[i];
+			acc_centerL1 = acc_centerL[i];
+		}
+		
+		//Backward recursion
+		
+		
+		/*
+		 R0_i=translation_for_num(0,i,1,theta);
+		 rot_i=translation_for_num(i,i+1,1,theta);
+		 
+		 f(:,7)=fi;
+		 Tr(:,7)=Ti;
+		 
+		 r_ici is involved in cross products: care for dimensions!
+		 */
+		double[] force_i = f; //is the external force applied at the end effector. It will be used to calculate the next force in NE method.
+		double[] force_next = new double[f.length];
+		double[] torque_i = T;//is the external torque applied at the end effector. It will be used to calculate the next torque in NE method.
+		double[] torque_next = new double[T.length];
+		
+		//double[][] inertia_i;
+		double[] temp1, temp2, temp3, temp4;
+		
+		for(int i = 5; i >= 0 ; i--) //in matlab the loop is 6:1
+		{
+			
+			
+			rot_i = (robot.Hto_from(i+2, i+1, theta)).getRotation(); //the indixes of the transf matrices are the same as in matlab though
+			R0_i = (robot.Hto_from(i+1, 0, theta)).getRotation();
+			
+			R0_i = Matrix.Transpose(R0_i);
+			
+			gi = Matrix.MultiplyMatrixVector(R0_i, g0);
+		
+			//force_next = Mass(i)*a_center(:,i)-mass(i)*gi + rot_i*f(:,i+1);
+			for(int j = 0; j < force_next.length; j++)
+			{
+				force_next[j] = mass[i]*acc_centerL[i][j] - mass[i]*gi[j];
+			}
+			force_next = Matrix.AddMatrices(force_next, Matrix.MultiplyMatrixVector(rot_i, force_i));
+			
+			//intertia_i = inerti
+			
+			temp1 = Matrix.CrossProduct(Matrix.MultiplyMatrixVector(rot_i, force_i), r_ici[i]);
+			temp2 = Matrix.CrossProduct(force_i,r_c[i]);
+			temp3 = Matrix.CrossProduct(w[i], Matrix.MultiplyMatrixVector(inertia_tens.get(i), w[i]));
+			temp4 = Matrix.MultiplyMatrixVector(inertia_tens.get(i), alpha[i]);
+			torque_next = Matrix.MultiplyMatrixVector(rot_i, torque_i);
+			
+			for(int j = 0; j < torque_next.length; j++)
+			{
+				torque_next[j] += temp1[j] - temp2[j] + temp3[j] + temp4[j];
+			}
+			
+			//Trr(i)=Tr(:,i)'*[0;0;1];
+			//This calculation (from MATLAB) basically extrapulates only the third element of the 1x3 vector
+			dynamic_solution[i] = torque_next[2];
+			
+		}
+		
+		
+		
+		return dynamic_solution;
+	}
+	
+	
+	private double[] solve_theta_1(double[] Pw)
 	{
 		/*
 		 * Input Pw: vector 3X1 of wirst coordinates
@@ -95,7 +356,7 @@ public class OnlinePlanner implements Runnable{
 	 * 
 	 */
 	
-	private double[][] solve_theta2_3(double[] Pw, double theta_1 , int index)
+	private double[][] solve_theta_23(double[] Pw, double theta_1 , int index)
 	{
 		
 		double a2 = link_length[1][0];
@@ -109,7 +370,7 @@ public class OnlinePlanner implements Runnable{
 		double[] theta_3 = {1000 , 0}; 
 		double[] theta_2 = {1000, 0};
 		
-		double[][] theta2_3 = new double[2][2];
+		double[][] theta_23 = new double[2][2];
 	
 		double rr;
 		double a;
@@ -126,30 +387,30 @@ public class OnlinePlanner implements Runnable{
 		a = ((-(d3*d3) - (a4 + a5)*(a4 + a5) + (Pw[2] - d1)*(Pw[2] - d1) + rr*rr ))/(2*d3*(a4 + a5));
 		if(a < -1 || a > 1 )
 		{
-			theta2_3[0] = theta_2;
-			theta2_3[1] = theta_3;
+			theta_23[0] = theta_2;
+			theta_23[1] = theta_3;
 			System.out.println("Impossible to reach that target.");
-			return theta2_3;
+			return theta_23;
 		}
 		else
 		{
 			theta_3[0] = Math.atan2(Math.sqrt(1 - a4*a4), a);
 			theta_3[1] = Math.atan2(-Math.sqrt(1 - a4*a4), a);
 			
-			theta2_3[1] = theta_3;
+			theta_23[1] = theta_3;
 		}
 		for(int i = 0; i < theta_3.length; i++)
 		{
 			theta_2[i] = Math.atan2((Pw[2] - d1),rr) + Math.atan2((a4 + a5)*Math.sin(theta_3[i]), d3 + (a4 + a5)*Math.cos(theta_3[i])); 
 		}
 		
-		theta2_3[0] = theta_2;
+		theta_23[0] = theta_2;
 		
-		return theta2_3;
+		return theta_23;
 		
 	}
 	
-	private double[][] solve_theta4_5_6(double[] Pw, double theta_1, double theta_2, double theta_3){
+	private double[][] solve_theta_456(Target target_position, double theta_1, double theta_2, double theta_3, int point_i){
 		
 		/*
 		 * TODO
@@ -158,6 +419,7 @@ public class OnlinePlanner implements Runnable{
 		 * 3: build the matrix from which the Euler's angles will be calculated
 		 * 
 		 * IMPORTANT: needed a way to read the joint angles of the previous configuration 
+		 * HOW DO I GET THAT?
 		 */
 			
 		double[][] R_zyz = {
@@ -165,8 +427,14 @@ public class OnlinePlanner implements Runnable{
 				{0.20, -0.90, 0.10},
 				{0.30, -0.10, 1.00}
 		};
+		double[] theta_values = {theta_1, theta_2, theta_3, 0, 0 , 0};
+		Target T0_3 = robot.Hto_from(3, 0, theta_values);
+		double[][] R0_3 = T0_3.getRotation();
 		
-		double previous_theta4_TEST = 0; //has to be copied from the previous configuration
+		double previous_theta4_TEST; //has to be copied from the previous configuration
+		
+		//FOR THE MOMENT I CHECK THE PREVIOUS THETA 4 OF CONFIGURATION ZERO (ARE THEY ALL THE SAME?)
+		
 		
 		double theta_46;
 		double[] theta_4 = new double[2];
@@ -182,8 +450,17 @@ public class OnlinePlanner implements Runnable{
 		
 		for(int i = 0; i < theta_5.length ; i++)
 		{
-			if(-0.0001 < theta_5[i] && theta_5[i] < 0.0001)
-			{//theta_5 is 0 and we're in a singularity case
+			if(-0.0001 < theta_5[i] && theta_5[i] < 0.0001){
+				//theta_5 is 0 and we're in a singularity case
+				
+				if(point_i == 0) {
+					previous_theta4_TEST = 0;
+					}
+				else { 
+					previous_theta4_TEST = thetaM[3][0][point_i - 1];
+					previous_theta4_TEST = theta4Optimal(theta_5[i], theta_1, theta_2, theta_3, point_i);
+					}
+				
 				theta_4[i] = previous_theta4_TEST;
 				theta_46 = Math.atan2(R_zyz[1][0], R_zyz[0][0]);
 				
@@ -211,4 +488,188 @@ public class OnlinePlanner implements Runnable{
 		 */
 	}
 	
+	private double theta4Optimal(double theta5, double theta1, double theta2, double theta3, int index){
+		/*
+		 * Theta4 of the previous point (i-1) could be any of the 8 previous configurations.
+		 * Therefore it is chosen the angle belonging to the configuration that covers less space 
+		 * between i-1 and i in terms of theta-1,2,3.
+		 * 
+		 * We ALREADY know that theta5 is a SINGULARITY (very close to zero)
+		 */
+		double minSum = Double.MAX_VALUE;
+		double temp = 0;
+		int configIndex = 0;
+		
+		if (theta5 < 0){
+			for(int i = 0; i < thetaM[0].length; i++){
+				if(thetaM[0][i][index-1] == 0){
+					continue;
+				}
+				if(thetaM[4][i][index-1] < 0){
+					//theta_sing=[theta_sing,abs(thetaM(1:3,i,t-1)-[theta1;theta2;theta3])];
+					temp = Math.abs(thetaM[0][i][index-1] - theta1) + Math.abs(thetaM[1][i][index-1] - theta2) + Math.abs(thetaM[2][i][index-1] - theta3);
+					if(temp < minSum){
+						minSum = temp;
+						configIndex = i;
+					}
+				}
+					
+				
+			}
+			
+		} else {
+			if (theta5 > 0){
+				
+				for(int i = 0; i < thetaM[0].length; i++){
+					if(thetaM[0][i][index-1] == 0){
+						continue;
+					}
+					if(thetaM[4][i][index-1] > 0){
+						//theta_sing=[theta_sing,abs(thetaM(1:3,i,t-1)-[theta1;theta2;theta3])];
+						temp = Math.abs(thetaM[0][i][index-1] - theta1) + Math.abs(thetaM[1][i][index-1] - theta2) + Math.abs(thetaM[2][i][index-1] - theta3);
+						if(temp < minSum){
+							minSum = temp;
+							configIndex = i;
+						}
+					}
+				}
+				
+			} else {
+				
+				for(int i = 0; i < thetaM[0].length; i++){
+					if(thetaM[0][i][index-1] == 0){
+						continue;
+					}
+					
+						temp = Math.abs(thetaM[0][i][index-1] - theta1) + Math.abs(thetaM[1][i][index-1] - theta2) + Math.abs(thetaM[2][i][index-1] - theta3);
+						if(temp < minSum){
+							minSum = temp;
+							configIndex = i;
+						}
+				}
+			
+			}
+		
+		}
+		
+		return thetaM[3][configIndex][index-1];
+	}
+	
+	private double[][][] Apply_Limitation(double[][][] ThetaM, int point_i)
+	{
+		for(int i = 0; i < ThetaM[0].length ; i++)
+		{
+			for(int j = 0; j < ThetaM.length ; j++)
+			{
+				if(ThetaM[j][i][point_i] < this.joint_limits[j][0] || ThetaM[j][i][point_i] > this.joint_limits[j][1])
+				{
+					//IF a joint exceeds its limits, the all configuration is compromised, hence 
+					//it will be put to zero.
+					for(int k = 0; k < ThetaM.length ; k++ )
+					{
+						ThetaM[k][i][point_i] = 0;
+					}
+					
+					break; //no need to check the other joints in this very configuration.
+				}
+			}
+		}
+		
+		return ThetaM;
+	}
+	
+	
+	private void Config_iteration(double[][][] ThetaM, int point_i, int prev_config, ArrayList<Double> Trajectory_times, int[] current_solution, ArrayList<int[]> Solutions){
+		/*
+		 * This function should check if the path can still be followed even if it doesn't 
+		 * exceed the joints limitations. The reason is because the path could be too fast for
+		 * the robot, and in that case the sequence of configuration chosen has to be discarded.
+		 */
+		int N = ThetaM[0][0].length;
+		int error = 0;
+		
+		for(int current_config = 0; current_config < ThetaM[0].length; current_config++)
+		{
+			if (point_i == 0)
+			{
+				error = 0;
+			}
+			else
+			{
+				if(ThetaM[0][current_config][point_i] == 0 && ThetaM[1][current_config][point_i] == 0)
+				{
+					//In this case the configuration has already been put to ZERO from Apply_limitation
+					//so there's no reason to check it again
+					error  = 1;
+				}
+				else{
+				error = Check_configuration(current_config, prev_config, point_i, ThetaM, Trajectory_times);
+				}
+			}
+				
+			
+			if(error == 0) 
+			{
+			//if the configuration checked was ok and with no problems then we can add it
+			//to the solution vector.
+				current_solution[point_i] = current_config;
+				if (point_i < N-1 )
+				{
+					Config_iteration(ThetaM, point_i+1, current_config, Trajectory_times, current_solution, Solutions);
+				}
+				else
+				{
+					int[] New_solution = current_solution;
+					Solutions.add(New_solution);
+					System.out.println("New solution found, the number of solutions is : " + Solutions.size());
+					
+				}
+				
+			}
+			
+		}
+		
+	}
+	
+	private int Check_configuration(int current_config, int prev_config, int point_i, double[][][] ThetaM, ArrayList<Double> Trajectory_times){
+		int error = 0;
+		//point_i will be for sure >= 1
+		double dTime = Trajectory_times.get(point_i) - Trajectory_times.get(point_i -1);
+		double[] w_max = {200.0, 200.0, 260.0, 360, 360, 450};
+		double[] Th_max = new double[w_max.length];
+ 		
+		for(int i = 0; i< w_max.length; i++){ 
+			w_max[i] = w_max[i] * Math.PI/180;
+			Th_max[i] = w_max[i] * dTime;
+		}
+		double[] Th_assump = Th_max;
+		double delta_joint;
+		
+		for(int j = 0 ; j < ThetaM.length ; j++)
+		{
+			delta_joint = Math.abs(ThetaM[j][current_config][point_i] - ThetaM[j][prev_config][point_i-1]);
+			
+			if((j <= 2 || j == 4) && (delta_joint > Th_assump[j]))
+			{
+				return error = 1;
+			}
+		
+			if((j == 3 || j == 5) && (delta_joint > Th_assump[j]))
+			{
+				double delta_joint4p = Math.abs(ThetaM[j][current_config][point_i] + 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
+				double delta_joint4m = Math.abs(ThetaM[j][current_config][point_i] - 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
+			
+				if(delta_joint4p < Th_assump[j]) { ThetaM[j][current_config][point_i] += 2*Math.PI; }
+				else
+				{
+					if(delta_joint4m < Th_assump[j]){ ThetaM[j][current_config][point_i] -= 2*Math.PI;}
+					else
+					{
+						return error = 1;
+					}
+				}
+			}	
+		}	
+		return error;
+	}
 }
