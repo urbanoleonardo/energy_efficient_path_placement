@@ -50,15 +50,15 @@ public class Path {
 		return PathPositions;
 	}
 	
-	public Trajectory GetTrajectory(){
+	public Trajectory getTrajectory(){
 		return this.interpolated_path;
 	}
 	
-	public double GetTimeSample(){
+	public double getTimeSample(){
 		return this.t_sample;
 	}
 	
-	public double GetSpaceSample(){
+	public double getSpaceSample(){
 		return this.x_sample;
 	}
 	//END part of the GET methods
@@ -97,14 +97,16 @@ public class Path {
 		Trajectory interpolatedPath = new Trajectory();
 		
 		
-		double acc_time = this.max_acc/this.max_vel;
+		double acc_time = this.max_vel/this.max_acc;
 		double[] init_pos = this.initial_position.getPosition();
 		double[] fin_pos = this.final_position.getPosition();
 		
 		double distance = Math.sqrt(Math.pow(fin_pos[0] - init_pos[0],2) + Math.pow(fin_pos[1] - init_pos[1],2) + Math.pow(fin_pos[2] - init_pos[2],2));
 		
+		
 		//Log for debug
 		//System.out.println("Distance : " + distance + " and acceleration time : " + acc_time);
+		int N = 0;
 		
 		double tot_time = 0;
 		double time = 0;
@@ -133,6 +135,10 @@ public class Path {
 			System.out.println("The velocity profile is triangular, so the new maximum velocity is: " + max_vel + " m/s");
 		}
 		
+		//log for debugging
+		System.out.println("Distance: " + distance + " total time : " + tot_time + " and maximum velocity : " + max_vel);
+		//System.out.println("Acceleration time: " + acc_time);
+		
 		acc_distance = max_vel*acc_time/2;
 		
 		if(acc_time > 0)
@@ -148,6 +154,8 @@ public class Path {
 		
 		while(time <= tot_time)
 		{
+			N++;
+			
 			if(time > acc_time)
 			{
 				acc_phase = false;
@@ -183,12 +191,18 @@ public class Path {
 			//add the new target to the trajectory
 			interpolatedPath.Points.add(newPointInTrajectory);
 			
+			//add the time instant to the trajectory's list
+			interpolatedPath.TimeInstants.add(time);
+			
 			time += this.t_sample;
 		}//end of the WHILE loop
 		
 		interpolatedPath.Points.add(this.final_position);
 		interpolatedPath.TimeInstants.add(time);
 		//the time offset still has to be considered (maybe a method?)
+		
+		System.out.println("Sampling time : " + this.t_sample);
+		//System.out.println("Number of points N: " + N);
 		
 		this.interpolated_path = interpolatedPath;
 		return interpolatedPath;

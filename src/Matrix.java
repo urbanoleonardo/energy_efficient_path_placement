@@ -166,6 +166,19 @@ public class Matrix {
 
 	}
 	
+	public static double[] subtractVectors(double[] m1, double[] m2){
+		double[] result = new double[m1.length];
+		
+		for(int i = 0; i < m1.length; i++){
+			result[i] = m1[i] - m2[i];
+		}
+		
+		return result;
+		
+	}
+
+	
+	
 	public static double[] CrossProduct(double[] A, double[] B)
 	{
 		double[] result = {0,0,0};
@@ -205,4 +218,15 @@ public class Matrix {
 		
 		return C;
 	}
+	
+	public static void displayMatrix(double[][] matrix){
+		for(int i = 0; i < matrix.length; i++){			
+			for(int j = 0; j < matrix[0].length; j++){
+			
+					System.out.print(matrix[i][j] + " ");
+				}
+			System.out.println(" ");
+		}
+	}
+	
 }

@@ -55,31 +55,43 @@ public class Test_robot_constructor {
 		 * Trying to test the path class
 		 */
 		double[][] matrix1 = {
-				{1.0, 0.0, 0.0, 2.3},
-				{0.0, 1.0, 0.0, -3.5},
-				{0.0, 0.0, 1.0, 1.0},
+				{0.0, 0.0, 1.0, 0.59627},
+				{1.0, 0.0, 0.0, 0.0},
+				{0.0, 1.0, 0.0, 0.66282},
 				{0.0, 0.0, 0.0, 1.0}
 		};
 		double[][] matrix2 = {
-				{1.0, 0.0, 0.0, 4.6},
-				{0.0, 1.0, 0.0, 4.0},
-				{0.0, 0.0, 1.0, -1.0},
+				{0.0, 0.0, 1.0, 0.59627},
+				{1.0, 0.0, 0.0, -0.21132},
+				{0.0, 1.0, 0.0, 0.58041},
 				{0.0, 0.0, 0.0, 1.0}
 		};
+//		double[][] matrix1 = {
+//				{0.0, 0.0, 1.0, 1},
+//				{1.0, 0.0, 0.0, 4},
+//				{0.0, 1.0, 0.0, -2},
+//				{0.0, 0.0, 0.0, 1.0}
+//		};
+//		double[][] matrix2 = {
+//				{0.0, 0.0, 1.0, 0},
+//				{1.0, 0.0, 0.0, 2},
+//				{0.0, 1.0, 0.0, 11},
+//				{0.0, 0.0, 0.0, 1.0}
+//		};
 		
 		double x_sample = 1E-3;
 		double t_sample = 0.01;
 		double acceleration = 1.0;
 		double velocity = 0.2;
 		
-		Target test_target1 = new Target(matrix1);
-		Target test_target2 = new Target(matrix2);
-		Path test_path = new Path(test_target1, test_target2, x_sample, t_sample);
+		Target testTarget1 = new Target(matrix1);
+		Target testTarget2 = new Target(matrix2);
+		Path test_path = new Path(testTarget1, testTarget2, t_sample, x_sample);
 		
 		test_path.SetMaxAcc(acceleration);
 		test_path.SetMaxVel(velocity);
 		test_path.Interpolate();
-		Trajectory test_output = test_path.GetTrajectory();
+		Trajectory test_output = test_path.getTrajectory();
 		System.out.println("Number of points : " + test_output.Points.size());
 		
 		/*
@@ -213,7 +225,7 @@ public class Test_robot_constructor {
 		}
 		
 
-		double[][] InerT = newRobotXML.getParameters("center of gravity");
+		double[][] inerT = newRobotXML.getParameters("center of gravity");
 		for(int i=0; i<COG.length; i++) //checked and working
 		{
 			for(int j=0;j<COG[0].length;j++)
@@ -222,6 +234,43 @@ public class Test_robot_constructor {
 			}
 			System.out.println("");
 		}
+		
+		double[][] R33 = {
+				{0, 0, 1},
+				{0, 1, 0},
+				{-1, 0, 0}
+				
+		};
+		double[][] R6tcp = {
+				{1, 0, 0},
+				{0, 1, 0},
+				{0, 0, 1}
+				
+		};
+		double[][] R0tcp = test_output.Points.get(3).getRotation();
+		double[][] R_zyz = Matrix.MultiplyMatrices(R0tcp, Matrix.Transpose(R6tcp));
+		R_zyz = Matrix.Transpose(Matrix.MultiplyMatrices(R_zyz, R33));
+		
+		
+		System.out.println("Righe : " + R_zyz.length + " Colonne : " + R_zyz[0].length);
+		
+		for(int i=0; i< R_zyz.length;i++)
+		{
+			for(int j=0; j<R_zyz[0].length; j++)
+			{
+				System.out.print(R_zyz[i][j] + " ");
+			}
+			System.out.println(" ");
+		}
+		
+		Target[] targets = new Target[2];
+		targets[0] = testTarget1;
+		targets[1] = testTarget2;
+		
+		OnlinePlanner dynSolution = new OnlinePlanner(targets, newRobotXML);
+		
+		dynSolution.run();
+		
 	}
 	
 	public static double[][] MultiplyMatrices(double[][] left, double[][] right){
