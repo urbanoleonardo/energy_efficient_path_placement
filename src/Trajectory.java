@@ -9,10 +9,10 @@ public class Trajectory {
  * trajectory should have inside methods to retrieve some points or to shift the whole trajectory 
  * of a certain vector.
  */
-	public ArrayList<Target> Points = new ArrayList<Target>();
-	public ArrayList<Double> TimeInstants = new ArrayList<Double>();
-	public ArrayList<double[]> Ext_Torques = new ArrayList<double[]>();
-	public ArrayList<double[]> Ext_Forces = new ArrayList<double[]>();
+	public ArrayList<Target> points = new ArrayList<Target>();
+	public ArrayList<Double> timeInstants = new ArrayList<Double>();
+	public ArrayList<double[]> extTorques = new ArrayList<double[]>();
+	public ArrayList<double[]> extForces = new ArrayList<double[]>();
 	
 	
 }

@@ -21,11 +21,13 @@ public class Robot {
 
 	private String model;
 	private int dof;
-	private double[][] link_length;
-	private double[] link_masses;
-	private List<double[][]> inertia_tens;
-	private double[][] joint_limits;
-	private double[][] cog_Matrix; //center of gravity matrix (SolidWorks)
+	private double[][] linkLength;
+	private double[] linkMasses;
+	private List<double[][]> inertiaTens;
+	private double[][] jointLimits;
+	private double[][] cogMatrix; //center of gravity matrix (SolidWorks)
+	private double[][] rc; //it has to be structured as 6x3 matrix to work down in the dynamic
+	private double[][] rici; //6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
 	Target location;
 
 	public static void main(String[] args){
@@ -77,9 +79,9 @@ public class Robot {
 					if(s.startsWith(section_limiter))
 					{
 
-						NotifyActualSection(section);
+						notifyActualSection(section);
 						System.out.println(s);
-						CopyRobotParameters(b, section);
+						copyRobotParameters(b, section);
 						section++;
 					}
 
@@ -96,6 +98,7 @@ public class Robot {
 	public Robot(String xml_FilePath, boolean xml_true){
 		
 		xmlBuilder(xml_FilePath);
+		
 	}
 	
 
@@ -112,12 +115,12 @@ public class Robot {
 		return this.dof;
 	}
 
-	public double[][] getLink_length() {
-		return link_length;
+	public double[][] getLinkLength() {
+		return linkLength;
 	}
 
-	public double[][] getJoint_limits() {
-		return joint_limits;
+	public double[][] getJointLimits() {
+		return jointLimits;
 	}
 
 	public double[][] getParameters(String arg)
@@ -134,36 +137,42 @@ public class Robot {
 
 		if(arg.equalsIgnoreCase("link length") || arg.equalsIgnoreCase("link_length"))
 		{
-			return this.link_length;
+			return this.linkLength;
 		}
 		if(arg.equalsIgnoreCase("joint limits") || arg.equalsIgnoreCase("joint_limits"))
 		{
-			return this.joint_limits;
+			return this.jointLimits;
 		}
 		if(arg.equalsIgnoreCase("center of gravity"))
 		{
-			return this.cog_Matrix;
+			return this.cogMatrix;
 		}
 
 		return defaultRes; 
 	}
 	
-	public List<double[][]> getInerTens(){
-		return this.inertia_tens;
+	public List<double[][]> getInertiaTens(){
+		return this.inertiaTens;
 	}
 	
-	public double[][] getSingleInerTens(int index){
-		return this.inertia_tens.get(index);
+	public double[][] getSingleInertiaTens(int index){
+		return this.inertiaTens.get(index);
 	}
 
-	public double[] getMass(){
-		return this.link_masses;
+	public double[] getLinkMasses(){
+		return this.linkMasses;
+	}
+	
+	public double[][] getRc() {
+		return rc;
+	}
+
+	public double[][] getRici() {
+		return rici;
 	}
 	//END of GET methods
 
-
-
-
+	
 	//Part of SET methods (if needed)
 
 
@@ -171,6 +180,8 @@ public class Robot {
 
 	//OTHER PUBLIC methods
 	
+
+
 	public Target Hto_from(int from, int to, double[] joint_values){
 
 		/* It returns the homogeneous matrix (H) representing position and orientation of
@@ -203,11 +214,11 @@ public class Robot {
 		double[][] H0_1 = {
 				{Math.cos(joint_values[0]), -Math.sin(joint_values[0]), 0, 0},
 				{Math.sin(joint_values[0]), Math.cos(joint_values[0]), 0, 0},
-				{0, 0, 1, this.link_length[0][1]},
+				{0, 0, 1, this.linkLength[0][1]},
 				{0, 0, 0, 1}
 		};
 		double[][] H1_2 = {
-				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, this.link_length[1][0]},
+				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, this.linkLength[1][0]},
 				{0, 0, -1, 0},
 				{Math.sin(joint_values[1]), Math.cos(joint_values[1]), 0, 0},
 				{0, 0, 0, 1}
@@ -215,11 +226,11 @@ public class Robot {
 		double[][] H2_3 = {
 				{Math.cos(joint_values[2]), -Math.sin(joint_values[2]), 0, 0},
 				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, 0},
-				{0, 0, 1, this.link_length[2][1]},
+				{0, 0, 1, this.linkLength[2][1]},
 				{0, 0, 0, 1}
 		};
 		double[][] H3_4 = {
-				{0, 0, 1, this.link_length[3][0] + this.link_length[4][0]},
+				{0, 0, 1, this.linkLength[3][0] + this.linkLength[4][0]},
 				{Math.sin(joint_values[3]), Math.cos(joint_values[3]), 0, 0},
 				{-Math.cos(joint_values[3]), Math.sin(joint_values[3]), 0, 0},
 				{0, 0, 0, 1}
@@ -358,7 +369,7 @@ public class Robot {
 
 	}
 	
-	private void CopyRobotParameters (BufferedReader b, int section) throws IOException
+	private void copyRobotParameters (BufferedReader b, int section) throws IOException
 	{
 		String s;
 		String comment_limiter = "%%";
@@ -373,19 +384,19 @@ public class Robot {
 
 		switch(section){
 		case 2: 
-			this.link_length = new double[this.dof][2];
+			this.linkLength = new double[this.dof][2];
 			break;
 		case 3:
-			this.link_masses = new double[this.dof];
+			this.linkMasses = new double[this.dof];
 			break;
 		case 4:
-			this.joint_limits = new double[this.dof][2];
+			this.jointLimits = new double[this.dof][2];
 			break;
 		case 5:
-			this.cog_Matrix = new double[3][this.dof];
+			this.cogMatrix = new double[3][this.dof];
 			break;
 		case 6:
-			this.inertia_tens = new ArrayList<double[][]>();
+			this.inertiaTens = new ArrayList<double[][]>();
 			
 
 		default:
@@ -428,20 +439,20 @@ public class Robot {
 				this.dof = Integer.parseInt(tokens[0]);
 				break;
 			case 2:
-				this.link_length[row_number][0] = Double.parseDouble(tokens[0]);
-				this.link_length[row_number][1] = Double.parseDouble(tokens[1]);
+				this.linkLength[row_number][0] = Double.parseDouble(tokens[0]);
+				this.linkLength[row_number][1] = Double.parseDouble(tokens[1]);
 				row_number++;
 				break;
 			case 3:
 				for(int i = 0; i<tokens.length; i++ )
 				{
-					this.link_masses[i] = Double.parseDouble(tokens[i]);
+					this.linkMasses[i] = Double.parseDouble(tokens[i]);
 				}
 				break;
 			case 4:
 				//here the values are read in degrees but will be converted into RAD
-				this.joint_limits[row_number][0] = Double.parseDouble(tokens[0]) * Math.PI / 180;
-				this.joint_limits[row_number][1] = Double.parseDouble(tokens[1]) * Math.PI / 180;
+				this.jointLimits[row_number][0] = Double.parseDouble(tokens[0]) * Math.PI / 180;
+				this.jointLimits[row_number][1] = Double.parseDouble(tokens[1]) * Math.PI / 180;
 				row_number++;
 				break;
 			case 5:
@@ -455,7 +466,7 @@ public class Robot {
 				for(int i = 0; i<tokens.length; i++ )
 				{
 
-					this.cog_Matrix[row_number][i] = Double.parseDouble(tokens[i]);
+					this.cogMatrix[row_number][i] = Double.parseDouble(tokens[i]);
 
 				}
 				row_number++;
@@ -469,7 +480,7 @@ public class Robot {
 				if(row_number == 3)
 				{
 					row_number = 0;
-					this.inertia_tens.add(temp_matr);
+					this.inertiaTens.add(temp_matr);
 				}
 				
 				break;
@@ -482,7 +493,7 @@ public class Robot {
 		}
 	}
 
-	private void NotifyActualSection(int section)
+	private void notifyActualSection(int section)
 	{
 		String sec;
 
@@ -578,7 +589,7 @@ public class Robot {
 		List<double[][]> inTens = new ArrayList<double[][]>();
 		Target T = new Target();
 
-		cog_wrtFrame0(this.cog_Matrix);
+		cog_wrtFrame0(this.cogMatrix);
 
 		inTens_prop = inTens_sw;
 		/* I multiply inTens_00 * prop */
@@ -590,15 +601,15 @@ public class Robot {
 		/* */
 		for(double[][] link:inTens_sw){
 
-			link[0][0] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[1][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
-			link[1][1] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[0][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
-			link[2][2] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[0][linkNum], 2) + Math.pow(this.cog_Matrix[1][linkNum], 2));
+			link[0][0] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[1][1] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[2][2] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[1][linkNum], 2));
 
-			link[0][1] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[1][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
+			link[0][1] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
 			link[1][0] = link[0][1];
-			link[0][2] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[1][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));
+			link[0][2] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
 			link[2][0] = link[0][2];
-			link[1][2] += this.link_masses[linkNum]*(Math.pow(this.cog_Matrix[0][linkNum], 2) + Math.pow(this.cog_Matrix[2][linkNum], 2));;
+			link[1][2] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));;
 			link[2][1] = link[1][2];
 
 			inTens0_i = SubtractMatrices(inTens_prop.get(linkNum), link);
@@ -674,15 +685,15 @@ public class Robot {
 	        	 inertia_link[2][0] = inertia_link[0][2];
 	        	 inertia_link[1][0] = inertia_link[0][1];
 	        	 
-	        	 this.link_length[linkNumber][0] = a;
-	        	 this.link_length[linkNumber][1] = d;
-	        	 this.link_masses[linkNumber] = mass;
-	        	 this.joint_limits[linkNumber][0] = min_limit * Math.PI / 180;
-	        	 this.joint_limits[linkNumber][1] = max_limit * Math.PI / 180;
+	        	 this.linkLength[linkNumber][0] = a;
+	        	 this.linkLength[linkNumber][1] = d;
+	        	 this.linkMasses[linkNumber] = mass;
+	        	 this.jointLimits[linkNumber][0] = min_limit * Math.PI / 180;
+	        	 this.jointLimits[linkNumber][1] = max_limit * Math.PI / 180;
 	        	 
-	        	 for(int i=0; i < CoG.length; i++){this.cog_Matrix[i][linkNumber] = CoG[i];}
+	        	 for(int i=0; i < CoG.length; i++){this.cogMatrix[i][linkNumber] = CoG[i];}
 	        	 
-	        	 this.inertia_tens.add(linkNumber, inertia_link);
+	        	 this.inertiaTens.add(linkNumber, inertia_link);
 	        	 
 	         }
 	         
@@ -696,11 +707,11 @@ public class Robot {
 	private void initializeVariables(int DOF){
 		
 		this.dof = DOF;
-		this.link_length = new double[DOF][2];
-		this.link_masses = new double[DOF];
-		this.joint_limits = new double[DOF][2];
-		this.cog_Matrix = new double[3][DOF];
-		this.inertia_tens = new ArrayList<double[][]>();
+		this.linkLength = new double[DOF][2];
+		this.linkMasses = new double[DOF];
+		this.jointLimits = new double[DOF][2];
+		this.cogMatrix = new double[3][DOF];
+		this.inertiaTens = new ArrayList<double[][]>();
 		
 	}
 	

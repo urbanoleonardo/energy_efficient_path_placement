@@ -92,7 +92,7 @@ public class Test_robot_constructor {
 		test_path.SetMaxVel(velocity);
 		test_path.Interpolate();
 		Trajectory test_output = test_path.getTrajectory();
-		System.out.println("Number of points : " + test_output.Points.size());
+		System.out.println("Number of points : " + test_output.points.size());
 		
 		/*
 		for(Target i : test_output.Points)
@@ -247,9 +247,9 @@ public class Test_robot_constructor {
 				{0, 0, 1}
 				
 		};
-		double[][] R0tcp = test_output.Points.get(3).getRotation();
-		double[][] R_zyz = Matrix.MultiplyMatrices(R0tcp, Matrix.Transpose(R6tcp));
-		R_zyz = Matrix.Transpose(Matrix.MultiplyMatrices(R_zyz, R33));
+		double[][] R0tcp = test_output.points.get(3).getRotation();
+		double[][] R_zyz = Matrix.multiplyMatrices(R0tcp, Matrix.transpose(R6tcp));
+		R_zyz = Matrix.transpose(Matrix.multiplyMatrices(R_zyz, R33));
 		
 		
 		System.out.println("Righe : " + R_zyz.length + " Colonne : " + R_zyz[0].length);
@@ -271,6 +271,21 @@ public class Test_robot_constructor {
 		
 		dynSolution.run();
 		
+//		System.out.println("");
+//		System.out.println("");
+//		double theta1Test = -3.1416;
+//		double theta2Test = 0.6655;
+//		double theta3Test = 2.4033;
+//		double[] jointValues = {theta1Test,theta2Test,theta3Test,0,0,0};
+//		
+//		double[][] R0_3 = newRobotXML.Hto_from(3, 0, jointValues).getRotation();
+//		
+//		Matrix.displayMatrix(R0_3);
+//		double[] thetaValues = {0,0,0,0,0,0}; 
+//		
+//		System.out.println(" ");
+//		Matrix.displayMatrix(newRobotXML.Hto_from(4, 3,thetaValues).getHomMatrix());
+//		
 	}
 	
 	public static double[][] MultiplyMatrices(double[][] left, double[][] right){

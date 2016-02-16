@@ -34,8 +34,8 @@ public class OnlinePlanner implements Runnable{
 		this.robot = robot;
 		this.link_length = robot.getParameters("link_length");
 		this.joint_limits = robot.getParameters("joint_limits");
-		this.mass = robot.getMass();
-		this.inertia_tens = robot.getInerTens();
+		this.mass = robot.getLinkMasses();
+		this.inertia_tens = robot.getInertiaTens();
 		
 		this.acceleration = 1.0;
 		this.velocity = 0.2;		
@@ -68,13 +68,14 @@ public class OnlinePlanner implements Runnable{
 		
 		//Trajectory is private so I can interrogate it directly
 		Trajectory pathTrajectory = path.getTrajectory();
-		int trajectoryLength = pathTrajectory.Points.size();
+		int trajectoryLength = pathTrajectory.points.size();
 
-		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.TimeInstants.size());
+		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
 		
 		
-		thetaM = new double[6][8][trajectoryLength + 1]; //trajectoryLength without +1 ?? 
+		thetaM = new double[6][8][trajectoryLength]; //trajectoryLength without +1 ?? 
 
+		long time1 = System.nanoTime();
 		int error = 0;
 		for(int j = 0; j < trajectoryLength && error == 0; j++)
 		{
@@ -82,19 +83,21 @@ public class OnlinePlanner implements Runnable{
 			 * PART where inverse kinematics is performed
 			 */
 			
-			error = onlineInvKinematics(pathTrajectory.Points.get(j), j);
+			error = onlineInvKinematics(pathTrajectory.points.get(j), j);
 		
 		}
 		
-		displayThetaM(0);
+		//displayThetaM(0);
 		
 		//Check if the configurations left can be followed by the robot
 		int[] Solution_vector = new int[thetaM[0][0].length];
 		ArrayList<int[]> Solutions = new ArrayList<int[]>();
-		configIteration(thetaM, 0, 0, pathTrajectory.TimeInstants,Solution_vector, Solutions);
-	
+		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
+		
+		long time2 = System.nanoTime();
 		int NumOfSolutions = Solutions.size();
 		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
+		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
 		
 		if(NumOfSolutions == 0)
 		{
@@ -173,17 +176,19 @@ public class OnlinePlanner implements Runnable{
 				thetaM[1][index][point_i] =	theta2;
 				thetaM[2][index][point_i] =	theta3;
 				thetaM[3][index][point_i] = theta_456[0][k];
-				thetaM[4][index][point_i] =	theta_456[1][k];
+				thetaM[4][index][point_i] =	-theta_456[1][k];
 				thetaM[5][index][point_i] = theta_456[2][k];
 					
 				}
 				
 			}
 		}
-		//if(point_i == 0){displayThetaM( 0 );}
 		
 		//CHECK limitation
 		thetaM = this.applyLimitation(thetaM, point_i);
+		
+		if(point_i == 0){displayThetaM( point_i );}
+		if(point_i == (thetaM[0][0].length - 1)){displayThetaM( point_i );}
 		
  		return 0;
 	}
@@ -191,7 +196,7 @@ public class OnlinePlanner implements Runnable{
 	
 	private void onlineInvDynamics(Trajectory trajectory, ArrayList<int[]> Kin_Solutions)
 	{
-		int N = trajectory.Points.size();
+		int N = trajectory.points.size();
 		double minEnergy = Double.MAX_VALUE;
 		int[] optKinSolution;
 		double[][] optDynSolution = new double[N][6];
@@ -217,8 +222,8 @@ public class OnlinePlanner implements Runnable{
 				double[] ddtheta = new double[6];
 				
 				for(int j = 0; j < 6; j++){ 
-					dtheta[j] = (theta[j] - prev_theta[j])/trajectory.TimeInstants.get(i);
-					ddtheta[j] = (dtheta[j] - prev_dtheta[j])/trajectory.TimeInstants.get(i);
+					dtheta[j] = (theta[j] - prev_theta[j])/trajectory.timeInstants.get(i);
+					ddtheta[j] = (dtheta[j] - prev_dtheta[j])/trajectory.timeInstants.get(i);
 				}
 					
 //	FROM MATLAB   T_ex=Ti(:,cont7);
@@ -236,7 +241,7 @@ public class OnlinePlanner implements Runnable{
 				
 				double power = powerCalculation(dynamicSol, dtheta);
 				
-				energy += power*trajectory.TimeInstants.get(i);
+				energy += power*trajectory.timeInstants.get(i);
 				
 				
 				
@@ -282,11 +287,11 @@ public class OnlinePlanner implements Runnable{
 		for(int i = 0; i < 6; i++)
 		{
 			rot_i = (robot.Hto_from(i+1, i, theta)).getRotation();
-			rot_i = Matrix.Transpose(rot_i);
-			double[] temp = Matrix.AddMatrices(w_1, Matrix.MultiplyScalMatr(dtheta[i], z0)); // (w_0 + z0*dtheta(i))
-			w[i] = Matrix.MultiplyMatrixVector(rot_i, temp); //R0_1' * (w_0 + z0*dtheta(i))
+			rot_i = Matrix.transpose(rot_i);
+			double[] temp = Matrix.addMatrices(w_1, Matrix.multiplyScalMatr(dtheta[i], z0)); // (w_0 + z0*dtheta(i))
+			w[i] = Matrix.multiplyMatrixVector(rot_i, temp); //R0_1' * (w_0 + z0*dtheta(i))
 			
-			temp = Matrix.CrossProduct(w[i], Matrix.MultiplyScalMatr(dtheta[i], z0));
+			temp = Matrix.crossProduct(w[i], Matrix.multiplyScalMatr(dtheta[i], z0));
 			double[] temp1;
 			
 			for(int j = 0; j < 3; j++)
@@ -295,7 +300,7 @@ public class OnlinePlanner implements Runnable{
 				
 				dw[i][j] = dw_1[j] + z0[j]*ddtheta[i] + temp[j];
 			}
-			alpha[i] = Matrix.MultiplyMatrixVector(rot_i, alpha[i]);  
+			alpha[i] = Matrix.multiplyMatrixVector(rot_i, alpha[i]);  
 			
 			
 			
@@ -338,24 +343,24 @@ public class OnlinePlanner implements Runnable{
 			rot_i = (robot.Hto_from(i+2, i+1, theta)).getRotation(); //the indixes of the transf matrices are the same as in matlab though
 			R0_i = (robot.Hto_from(i+1, 0, theta)).getRotation();
 			
-			R0_i = Matrix.Transpose(R0_i);
+			R0_i = Matrix.transpose(R0_i);
 			
-			gi = Matrix.MultiplyMatrixVector(R0_i, g0);
+			gi = Matrix.multiplyMatrixVector(R0_i, g0);
 		
 			//force_next = Mass(i)*a_center(:,i)-mass(i)*gi + rot_i*f(:,i+1);
 			for(int j = 0; j < force_next.length; j++)
 			{
 				force_next[j] = mass[i]*acc_centerL[i][j] - mass[i]*gi[j];
 			}
-			force_next = Matrix.AddMatrices(force_next, Matrix.MultiplyMatrixVector(rot_i, force_i));
+			force_next = Matrix.addMatrices(force_next, Matrix.multiplyMatrixVector(rot_i, force_i));
 			
 			//intertia_i = inerti
 			
-			temp1 = Matrix.CrossProduct(Matrix.MultiplyMatrixVector(rot_i, force_i), r_ici[i]);
-			temp2 = Matrix.CrossProduct(force_i,r_c[i]);
-			temp3 = Matrix.CrossProduct(w[i], Matrix.MultiplyMatrixVector(inertia_tens.get(i), w[i]));
-			temp4 = Matrix.MultiplyMatrixVector(inertia_tens.get(i), alpha[i]);
-			torque_next = Matrix.MultiplyMatrixVector(rot_i, torque_i);
+			temp1 = Matrix.crossProduct(Matrix.multiplyMatrixVector(rot_i, force_i), r_ici[i]);
+			temp2 = Matrix.crossProduct(force_i,r_c[i]);
+			temp3 = Matrix.crossProduct(w[i], Matrix.multiplyMatrixVector(inertia_tens.get(i), w[i]));
+			temp4 = Matrix.multiplyMatrixVector(inertia_tens.get(i), alpha[i]);
+			torque_next = Matrix.multiplyMatrixVector(rot_i, torque_i);
 			
 			for(int j = 0; j < torque_next.length; j++)
 			{
@@ -459,8 +464,8 @@ public class OnlinePlanner implements Runnable{
 		}
 		else
 		{
-			theta_3[0] = Math.atan2(Math.sqrt(1 - a4*a4), a);
-			theta_3[1] = Math.atan2(-Math.sqrt(1 - a4*a4), a);
+			theta_3[0] = Math.atan2(Math.sqrt(1 - a*a), a);
+			theta_3[1] = Math.atan2(-Math.sqrt(1 - a*a), a);
 			
 			theta_23[1] = theta_3;
 		}
@@ -469,8 +474,7 @@ public class OnlinePlanner implements Runnable{
 			theta_2[i] = Math.atan2((Pw[2] - d1),rr) + Math.atan2((a4 + a5)*Math.sin(theta_3[i]), d3 + (a4 + a5)*Math.cos(theta_3[i])); 
 		}
 		
-		theta_23[0] = theta_2;
-		
+		theta_23[0] = theta_2;		
 		return theta_23;
 		
 	}
@@ -487,11 +491,7 @@ public class OnlinePlanner implements Runnable{
 		 * HOW DO I GET THAT?
 		 */
 			
-//		double[][] R_zyz = {
-//				{0.45,  0.0,  0.20},
-//				{0.20, -0.90, 0.10},
-//				{0.30, -0.10, 1.00}
-//		};
+
 		
 		double[][] R_zyz = new double[3][3];
 		double[] theta_values = {theta_1, theta_2, theta_3, 0, 0 , 0};
@@ -513,16 +513,9 @@ public class OnlinePlanner implements Runnable{
 		
 		
 		//Rzyz=(R0_3*R3_3)'*R0_TCP*R6_TCP';
-		R_zyz = Matrix.MultiplyMatrices(R0tcp, Matrix.Transpose(R6tcp));
-		R_zyz = Matrix.MultiplyMatrices(Matrix.Transpose(Matrix.MultiplyMatrices(R0_3, R33)), R_zyz);
-		
-		//double previous_theta4_TEST; //has to be copied from the previous configuration
-		
-		if(point_i == 0){
-			Matrix.displayMatrix(R_zyz);
-			System.out.println(" ");
-		}
-		
+		R_zyz = Matrix.multiplyMatrices(R0tcp, Matrix.transpose(R6tcp));
+		R_zyz = Matrix.multiplyMatrices(Matrix.transpose(Matrix.multiplyMatrices(R0_3, R33)), R_zyz);
+				
 		
 		double theta_46;
 		double[] theta_4 = new double[2];
@@ -560,7 +553,7 @@ public class OnlinePlanner implements Runnable{
 			{//theta_5 is NOT 0 and we can calculate the other angles
 				temp = Math.sin(theta_5[i]);
 				theta_4[i] = Math.atan2(R_zyz[0][2]/temp, -R_zyz[1][2]/temp);
-				theta_6[i] = Math.atan2(R_zyz[2][0]/temp, -R_zyz[2][1]/temp);
+				theta_6[i] = Math.atan2(R_zyz[2][0]/temp, R_zyz[2][1]/temp);
 			}
 		}
 		
@@ -568,6 +561,21 @@ public class OnlinePlanner implements Runnable{
 		theta_456[0] = theta_4;
 		theta_456[1] = theta_5;
 		theta_456[2] = theta_6;
+		
+		//DEBUG LINE
+//		if(point_i == 0){
+//			System.out.println("R_zyz :");
+//			Matrix.displayMatrix(R_zyz);
+//			System.out.println("R0_3 : ");
+//			Matrix.displayMatrix(R0_3);
+//			System.out.println("Theta1: " + theta_1 + "  theta2: " + theta_2 + "  theta3: " + theta_3);
+//			System.out.println("Theta4: " + theta_4[0] + " or " + theta_4[1]);
+//			System.out.println("Theta5: " + theta_5[0] + " or " + theta_5[1]);
+//			System.out.println("Theta6: " + theta_6[0] + " or " + theta_6[1]);
+//			
+//		}
+		
+		
 		
 		return theta_456;
 		/*
@@ -646,6 +654,7 @@ public class OnlinePlanner implements Runnable{
 	
 	private double[][][] applyLimitation(double[][][] ThetaM, int point_i)
 	{
+		
 		for(int i = 0; i < ThetaM[0].length ; i++)
 		{
 			for(int j = 0; j < ThetaM.length ; j++)
@@ -654,6 +663,10 @@ public class OnlinePlanner implements Runnable{
 				{
 					//IF a joint exceeds its limits, the all configuration is compromised, hence 
 					//it will be put to zero.
+					
+					
+					//System.out.println("Il giunto " + j + " oltrepassa i suoi limiti");
+					
 					for(int k = 0; k < ThetaM.length ; k++ )
 					{
 						ThetaM[k][i][point_i] = 0;
@@ -663,7 +676,6 @@ public class OnlinePlanner implements Runnable{
 				}
 			}
 		}
-		
 		return ThetaM;
 	}
 	
@@ -674,8 +686,9 @@ public class OnlinePlanner implements Runnable{
 		 * exceed the joints limitations. The reason is because the path could be too fast for
 		 * the robot, and in that case the sequence of configuration chosen has to be discarded.
 		 */
-		int N = ThetaM[0][0].length;
+		int N = ThetaM[0][0].length; //137
 		int error = 0;
+		
 		
 		for(int currentConfig = 0; currentConfig < ThetaM[0].length; currentConfig++)
 		{
@@ -763,7 +776,9 @@ public class OnlinePlanner implements Runnable{
 	}
 	
 	public void displayThetaM(int index){
-		System.out.println(thetaM.length + " " + thetaM[0].length + " " + thetaM[0][0].length);
+		//System.out.println(thetaM.length + " " + thetaM[0].length + " " + thetaM[0][0].length);
+		System.out.println("");
+		System.out.println("ThetaM of index " + index);
 		
 		for(int i = 0; i < thetaM[0][0].length; i++){
 			if(i != index){
@@ -777,6 +792,7 @@ public class OnlinePlanner implements Runnable{
 				System.out.println(" ");
 			}
 		}
+		System.out.println(" ");
 	}
 	
 }

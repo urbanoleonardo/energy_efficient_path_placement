@@ -118,8 +118,8 @@ public class Path {
 		
 		double new_position;
 		
-		interpolatedPath.Points.add(this.initial_position);
-		interpolatedPath.TimeInstants.add(time);
+		interpolatedPath.points.add(this.initial_position);
+		interpolatedPath.timeInstants.add(time);
 		
 		if(((2*acc_time)*this.max_vel/2.0) < distance)
 		{
@@ -189,16 +189,16 @@ public class Path {
 			Target newPointInTrajectory = new Target(position_vector, this.initial_position.getRotation());
 			
 			//add the new target to the trajectory
-			interpolatedPath.Points.add(newPointInTrajectory);
+			interpolatedPath.points.add(newPointInTrajectory);
 			
 			//add the time instant to the trajectory's list
-			interpolatedPath.TimeInstants.add(time);
+			interpolatedPath.timeInstants.add(time);
 			
 			time += this.t_sample;
 		}//end of the WHILE loop
 		
-		interpolatedPath.Points.add(this.final_position);
-		interpolatedPath.TimeInstants.add(time);
+		interpolatedPath.points.add(this.final_position);
+		interpolatedPath.timeInstants.add(time);
 		//the time offset still has to be considered (maybe a method?)
 		
 		System.out.println("Sampling time : " + this.t_sample);
@@ -210,7 +210,7 @@ public class Path {
 	
 	public void TranslateTrajectory(double[] vector)
 	{
-		for(Target i : this.interpolated_path.Points)
+		for(Target i : this.interpolated_path.points)
 		{
 			i.TranslateTarget(vector);
 		}

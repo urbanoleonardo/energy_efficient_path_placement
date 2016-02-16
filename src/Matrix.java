@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Matrix {
 
-	public static double[][] MultiplyMatrices(double[][] left, double[][] right){
+	public static double[][] multiplyMatrices(double[][] left, double[][] right){
 
 		/*
 		 * Function implemented to multiply 2 matrices (useful in Hto_from)
@@ -31,7 +31,7 @@ public class Matrix {
 
 	}
 	
-	public static double MultiplyMatrices(double[] left, double[][] right){
+	public static double multiplyMatrices(double[] left, double[][] right){
 
 		/*
 		 * Function implemented to multiply 2 matrices (useful in Hto_from)
@@ -53,7 +53,7 @@ public class Matrix {
 
 	}
 	
-	public static double[] MultiplyMatrixVector(double[][] matrix, double[] vector)
+	public static double[] multiplyMatrixVector(double[][] matrix, double[] vector)
 	{
 		double[] M_vector = new double[matrix.length];
 		
@@ -67,7 +67,7 @@ public class Matrix {
 		
 	}
 	
-	public static double[][] MultiplyMatrices(double[][] left, double[] right){
+	public static double[][] multiplyMatrices(double[][] left, double[] right){
 
 		
 
@@ -95,7 +95,7 @@ public class Matrix {
 		return M;
 	}
 	
-	public static double[][] Transpose(double[][] matrix){
+	public static double[][] transpose(double[][] matrix){
 		double[][] matrix_transpose = new double[matrix[0].length][matrix.length];
 		
 		for(int i = 0; i < matrix.length; i++)
@@ -110,7 +110,7 @@ public class Matrix {
 		
 	}
 	
-	public static double[][] Transpose(double[] vector){
+	public static double[][] transpose(double[] vector){
 		double[][] vector_transpose = new double[1][vector.length];
 		
 		for(int i = 0; i < vector.length; i++)
@@ -124,7 +124,7 @@ public class Matrix {
 		
 	}
 	
-	public static double[][] MultiplyScalMatr(double scalar, double[][] m){
+	public static double[][] multiplyScalMatr(double scalar, double[][] m){
 
 		for(int i = 0; i < m.length; i++)
 			for(int j = 0; j < m[0].length; j++)
@@ -134,7 +134,7 @@ public class Matrix {
 
 	}
 
-	public static double[] MultiplyScalMatr(double scalar, double[] m){
+	public static double[] multiplyScalMatr(double scalar, double[] m){
 
 		for(int i = 0; i < m.length; i++)
 				m[i] = scalar*m[i];
@@ -143,7 +143,7 @@ public class Matrix {
 
 	}
 	
-	public static double[][] SubtractMatrices(double[][] m1, double[][] m2){
+	public static double[][] subtractMatrices(double[][] m1, double[][] m2){
 
 		/*
 		 * It returns m = m1 - m2.
@@ -179,7 +179,7 @@ public class Matrix {
 
 	
 	
-	public static double[] CrossProduct(double[] A, double[] B)
+	public static double[] crossProduct(double[] A, double[] B)
 	{
 		double[] result = {0,0,0};
 		
@@ -197,7 +197,7 @@ public class Matrix {
 		return result;	
 	}
 	
-	public static double[][] AddMatrices(double[][] A, double[][] B)
+	public static double[][] addMatrices(double[][] A, double[][] B)
 	{
 		int row = A.length;
 		int column = A[0].length;
@@ -209,7 +209,7 @@ public class Matrix {
 		return C;
 	}
 	
-	public static double[] AddMatrices(double[] A, double[] B)
+	public static double[] addMatrices(double[] A, double[] B)
 	{
 		int row = A.length;
 		double[] C = new double[row];
