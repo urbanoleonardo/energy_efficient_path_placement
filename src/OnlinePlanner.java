@@ -13,10 +13,10 @@ public class OnlinePlanner implements Runnable{
 	private Target[] targets;
 	private Robot robot;
 	
-	private double[][] link_length;
-	private double[][] joint_limits;
+	private double[][] linkLength;
+	private double[][] jointLimits;
 	private double[] mass;
-	private List<double[][]> inertia_tens;
+	private List<double[][]> inertiaTens;
 	
 	private double[][][] thetaM;
 	
@@ -32,15 +32,22 @@ public class OnlinePlanner implements Runnable{
 		
 		targetsLength = copyTargets(targets);
 		this.robot = robot;
-		this.link_length = robot.getParameters("link_length");
-		this.joint_limits = robot.getParameters("joint_limits");
+		this.linkLength = robot.getLinkLength();
+		this.jointLimits = robot.getJointLimits();
 		this.mass = robot.getLinkMasses();
-		this.inertia_tens = robot.getInertiaTens();
+		this.inertiaTens = robot.getInertiaTens();
+		this.r_c = robot.getRc();
+		this.r_ici = robot.getRici();
 		
 		this.acceleration = 1.0;
 		this.velocity = 0.2;		
 		
 		this.currPosition = targets[0];
+		
+		int index = 3;
+		Matrix.displayMatrix(inertiaTens.get(index));
+		index++;
+		System.out.println("Inertia tensor fo index " + index);
 	}
 	
 	public void run(){
@@ -94,10 +101,10 @@ public class OnlinePlanner implements Runnable{
 		ArrayList<int[]> Solutions = new ArrayList<int[]>();
 		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
 		
-		long time2 = System.nanoTime();
+//		long time2 = System.nanoTime();
 		int NumOfSolutions = Solutions.size();
 		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
-		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
+//		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
 		
 		if(NumOfSolutions == 0)
 		{
@@ -108,7 +115,8 @@ public class OnlinePlanner implements Runnable{
 		//can be calculated.
 		
 		onlineInvDynamics(pathTrajectory, Solutions);
-		
+		long time2 = System.nanoTime();
+		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
 	}
 		
 		
@@ -134,7 +142,7 @@ public class OnlinePlanner implements Runnable{
 		 */
 		
 		double[] P = Next_position.getPosition();
-		double a6 = link_length[5][0];
+		double a6 = linkLength[5][0];
 		double[] gw = {a6*Next_position.getRotation()[0][2], a6*Next_position.getRotation()[1][2], a6*Next_position.getRotation()[2][2]};
 		double[] Pw = new double[3];
 		Pw = Matrix.subtractVectors(P,gw);
@@ -215,9 +223,9 @@ public class OnlinePlanner implements Runnable{
 			for(int i = 0 ; i < N; i++)
 			{
 				//MAIN LOOP where the dynamic analysis is performed
-				int index = solution[i+1];
+				int index = solution[i]; //there was a +1 - WHY?
 				double[] theta = new double[6];
-				for(int j = 0; j < 6; j++){ theta[j] = thetaM[j][index][i+1];}
+				for(int j = 0; j < 6; j++){ theta[j] = thetaM[j][index][i];} //there was a +1 - WHY?
 				double[] dtheta = new double[6];
 				double[] ddtheta = new double[6];
 				
@@ -273,7 +281,9 @@ public class OnlinePlanner implements Runnable{
 		 */
 		
 		//double[] w_1, alpha_1, acc_centerL1, acc_endL1, w, acc_endL, acc_centerL, dw;
-		double[] w_1 = {0,0,0}, alpha_1 = {0,0,0} , acc_centerL1 = {0,0,0}, acc_endL1 = {0,0,0};
+		double[] w_1 = {0,0,0}, alpha_1 = {0,0,0};
+		double[] acc_centerL1;
+		double[] acc_endL1;
 		double[] z0 = {0,0,1}, g0 = {0,0,-9.81};
 		double[] gi;
 		double[][] w = new double[6][3], alpha = new double[6][3], dw = new double[6][3], acc_endL = new double[6][3];
@@ -292,7 +302,6 @@ public class OnlinePlanner implements Runnable{
 			w[i] = Matrix.multiplyMatrixVector(rot_i, temp); //R0_1' * (w_0 + z0*dtheta(i))
 			
 			temp = Matrix.crossProduct(w[i], Matrix.multiplyScalMatr(dtheta[i], z0));
-			double[] temp1;
 			
 			for(int j = 0; j < 3; j++)
 			{
@@ -358,8 +367,8 @@ public class OnlinePlanner implements Runnable{
 			
 			temp1 = Matrix.crossProduct(Matrix.multiplyMatrixVector(rot_i, force_i), r_ici[i]);
 			temp2 = Matrix.crossProduct(force_i,r_c[i]);
-			temp3 = Matrix.crossProduct(w[i], Matrix.multiplyMatrixVector(inertia_tens.get(i), w[i]));
-			temp4 = Matrix.multiplyMatrixVector(inertia_tens.get(i), alpha[i]);
+			temp3 = Matrix.crossProduct(w[i], Matrix.multiplyMatrixVector(inertiaTens.get(i), w[i]));
+			temp4 = Matrix.multiplyMatrixVector(inertiaTens.get(i), alpha[i]);
 			torque_next = Matrix.multiplyMatrixVector(rot_i, torque_i);
 			
 			for(int j = 0; j < torque_next.length; j++)
@@ -425,12 +434,12 @@ public class OnlinePlanner implements Runnable{
 	private double[][] solveTheta23(double[] Pw, double theta_1 , int index)
 	{
 		
-		double a2 = link_length[1][0];
-		double a4 = link_length[3][0];
-		double a5 = link_length[4][0];
+		double a2 = linkLength[1][0];
+		double a4 = linkLength[3][0];
+		double a5 = linkLength[4][0];
 		
-		double d1 = link_length[0][1];
-		double d3 = link_length[2][1];
+		double d1 = linkLength[0][1];
+		double d3 = linkLength[2][1];
 		
 		//standard values for initialization if target is out of reach
 		double[] theta_3 = {1000 , 0}; 
@@ -659,7 +668,7 @@ public class OnlinePlanner implements Runnable{
 		{
 			for(int j = 0; j < ThetaM.length ; j++)
 			{
-				if(ThetaM[j][i][point_i] < this.joint_limits[j][0] || ThetaM[j][i][point_i] > this.joint_limits[j][1])
+				if(ThetaM[j][i][point_i] < this.jointLimits[j][0] || ThetaM[j][i][point_i] > this.jointLimits[j][1])
 				{
 					//IF a joint exceeds its limits, the all configuration is compromised, hence 
 					//it will be put to zero.

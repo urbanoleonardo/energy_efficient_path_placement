@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.dom4j.io.SAXReader;
@@ -98,7 +99,7 @@ public class Robot {
 	public Robot(String xml_FilePath, boolean xml_true){
 		
 		xmlBuilder(xml_FilePath);
-		
+		jointDistances();
 	}
 	
 
@@ -704,6 +705,51 @@ public class Robot {
 		}
 	}
 	
+	private void jointDistances(){
+		double[] theta = new double[this.dof];
+		Arrays.fill(theta, 0);
+		
+		for(int i=0; i < this.dof; i++){
+			Target Tnum = this.Hto_from(i, 0, theta);
+			double[][] temp = Tnum.getInvHomMatrix();
+			double[] cogLink = {this.cogMatrix[0][i],this.cogMatrix[1][i],this.cogMatrix[2][i],1}; //Vector to be considered 4x1
+			/*
+			 * The whole calculation could be optimized but is not really worth it
+			 */
+			double[] rc4Link = Matrix.multiplyMatrixVector(temp, cogLink);
+			double[] rcLink = {rc4Link[0],rc4Link[1],rc4Link[2]};
+			
+			this.rc[i] = rcLink;
+		}
+		
+		//r=[a1,0,0;0,d2,0;(a2+a3),0,0;0,0,0;0,0,0; 0,0,0] in MATLAB notation
+		/*
+		 * Our notation is different form the paper.
+		 * We adopt the iterative DH notation.
+		 * If it's confronted with MATLAB module we have:
+		 * MATLAB  ------   JAVA
+		 * a1				a2
+		 * a2				a4
+		 * a3				a5
+		 * a4				a6
+		 * -------------------
+		 * d1				d1
+		 * d2				d3
+		 * 
+		 */
+		
+		double[][] r = {
+				{linkLength[1][0],0,0},
+				{0,linkLength[2][1],0},
+				{linkLength[3][0]+linkLength[4][0],0,0},
+				{0,0,0},
+				{0,0,0},
+				{0,0,0}
+		};
+		this.rici = Matrix.subtractMatrices(rc, r);
+		
+	}
+	
 	private void initializeVariables(int DOF){
 		
 		this.dof = DOF;
@@ -712,6 +758,8 @@ public class Robot {
 		this.jointLimits = new double[DOF][2];
 		this.cogMatrix = new double[3][DOF];
 		this.inertiaTens = new ArrayList<double[][]>();
+		this.rc = new double[DOF][3];
+		this.rici = new double[DOF][3];
 		
 	}
 	
