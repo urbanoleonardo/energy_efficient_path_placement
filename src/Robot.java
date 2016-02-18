@@ -560,9 +560,7 @@ public class Robot {
 
 			initializeArray(joint_values);
 
-			/* From i to 0 because I want the inverse matrix
-			 * LEO RIGUARDA I+1 NELLA FORMULA SOTTO */
-			T0_i = Hto_from(0, i+1, joint_values);
+			T0_i = Hto_from(i+1, 0, joint_values);
 			cg0_i = MultiplyMatrices(T0_i.getInvRotation(), cg_i);
 
 			cg0[0][i] = cg0_i[0][0];
@@ -597,8 +595,15 @@ public class Robot {
 		for(int i = 0; i < massesInMm.length; i++)
 			massesInMm[i] = this.linkMasses[i]*1000;
 
-		cog_wrtFrame0(this.cogMatrix);
-
+		cog_wrtFrame0(this.cogMatrix); 
+		
+		/*
+		 * Values from cog_wrtFrame0 are in m so I have to multiply them by 1000
+		 */
+		for(int i = 0; i < cogMatrix.length; i++)
+			for(int j = 0; j < cogMatrix[0].length; j++)
+				cogMatrix[i][j] *= 1000;
+		
 		inTens_prop = inTens_sw;
 		/* I multiply inTens_00 * prop */
 		for(double[][] link:inTens_prop)
@@ -630,9 +635,9 @@ public class Robot {
 			BUFFER = MultiplyMatrices(T.getInvRotation(), inTens0_i);
 			inTensi_i = MultiplyMatrices(BUFFER, T.getRotation());
 
-			/* I need inTens to be in kg*m^2(so far they were g*mm^2)
+			/* I need inTens to be in kg*m^2(so far they were in g*mm^2)
 			 *  then I multiply every element of the list for 10^-9 */			
-			inTensi_i = MultiplyScalMatr(Math.pow(10, -9), inTensi_i);
+			inTensi_i = Matrix.multiplyScalMatr(10E-9, inTensi_i);
 			inTens.add(inTensi_i);
 
 			linkNum++;
