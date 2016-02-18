@@ -583,12 +583,19 @@ public class Robot {
 		int linkNum = 0;
 		double prop = 98000/46249; /* ??????????????????? */
 		double[] joint_values = new double[this.dof];
+		double[] massesInMm = new double[this.linkMasses.length];
 		double[][] BUFFER = new double[3][3];
 		double[][] inTensi_i = new double[3][3];
 		double[][] inTens0_i = new double[3][3];
 		List<double[][]> inTens_prop = new ArrayList<double[][]>();
 		List<double[][]> inTens = new ArrayList<double[][]>();
 		Target T = new Target();
+		
+		/*
+		 * from link_masses in m to link_masses in mm
+		 */
+		for(int i = 0; i < massesInMm.length; i++)
+			massesInMm[i] = this.linkMasses[i]*1000;
 
 		cog_wrtFrame0(this.cogMatrix);
 
@@ -598,26 +605,25 @@ public class Robot {
 			for(int i = 0; i < 3; i++)
 				for(int j = 0; j < 3; j++)
 					link[i][j] *= prop;
-
-		/* */
+		
 		for(double[][] link:inTens_sw){
 
-			link[0][0] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
-			link[1][1] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
-			link[2][2] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[1][linkNum], 2));
+			link[0][0] += massesInMm[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[1][1] += massesInMm[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[2][2] += massesInMm[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[1][linkNum], 2));
 
-			link[0][1] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[0][1] -= massesInMm[linkNum]*(this.cogMatrix[0][linkNum]*this.cogMatrix[1][linkNum]);
 			link[1][0] = link[0][1];
-			link[0][2] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[0][2] -= massesInMm[linkNum]*(this.cogMatrix[0][linkNum]*this.cogMatrix[2][linkNum]);
 			link[2][0] = link[0][2];
-			link[1][2] += this.linkMasses[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));;
+			link[1][2] -= massesInMm[linkNum]*(this.cogMatrix[1][linkNum]*this.cogMatrix[2][linkNum]);
 			link[2][1] = link[1][2];
 
 			inTens0_i = SubtractMatrices(inTens_prop.get(linkNum), link);
 
 			initializeArray(joint_values);
 
-			T = Hto_from(0, linkNum, joint_values);
+			T = Hto_from(linkNum, 0, joint_values);
 			/* I have to perform the following calculation: Ii_i = R0_i^(-1)*I0_i*R0_i
 			 * to do so, I use a buffer 
 			 */
