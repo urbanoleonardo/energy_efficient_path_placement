@@ -6,6 +6,7 @@ import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 
 import org.dom4j.io.SAXReader;
 import org.dom4j.*;
@@ -99,7 +100,7 @@ public class Robot {
 	public Robot(String xml_FilePath, boolean xml_true){
 		
 		xmlBuilder(xml_FilePath);
-		jointDistances();
+		
 	}
 	
 
@@ -164,6 +165,10 @@ public class Robot {
 		return this.linkMasses;
 	}
 	
+	public double[][] getCoGMatrix(){
+		return this.cogMatrix;
+	}
+	
 	public double[][] getRc() {
 		return rc;
 	}
@@ -183,7 +188,7 @@ public class Robot {
 	
 
 
-	public Target Hto_from(int from, int to, double[] joint_values){
+	public Target hToFrom(int from, int to, double[] joint_values){
 
 		/* It returns the homogeneous matrix (H) representing position and orientation of
 		 * frame "from" with respect to frame "to" 
@@ -191,20 +196,23 @@ public class Robot {
 		 * joint_values = values of the joint coordinates
 		 */
 
-		List<double[][]> H_indexed = new ArrayList<double[][]>();
+		List<double[][]> hIndexed = new ArrayList<double[][]>();
 		Target T;
 		double[][] I = new double[4][4];
 		double[][] H = new double[4][4];
 		int max;
 		int min;
 
-		for(int i = 0; i < 4; i++)
-			for(int j = 0; j < 4; j++)
-				if(i == j)
+		for(int i = 0; i < 4; i++){
+			for(int j = 0; j < 4; j++){
+				if(i == j){
 					I[i][j] = 1;
-				else I[i][j] = 0;
-
-		H = I;
+				}else {
+					I[i][j] = 0;
+				}
+				H[i][j] = I[i][j];
+			}
+		}
 
 		if(from == to){
 			T = new Target(H);
@@ -226,8 +234,8 @@ public class Robot {
 		};
 		double[][] H2_3 = {
 				{Math.cos(joint_values[2]), -Math.sin(joint_values[2]), 0, 0},
-				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, 0},
-				{0, 0, 1, this.linkLength[2][1]},
+				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, this.linkLength[2][1]},
+				{0, 0, 1, 0},
 				{0, 0, 0, 1}
 		};
 		double[][] H3_4 = {
@@ -255,13 +263,13 @@ public class Robot {
 				{0, 0, 0, 1}
 		};
 
-		H_indexed.add(H0_1);
-		H_indexed.add(H1_2);
-		H_indexed.add(H2_3);
-		H_indexed.add(H3_4);
-		H_indexed.add(H4_5);
-		H_indexed.add(H5_6);
-		H_indexed.add(H6_endEff);
+		hIndexed.add(H0_1); //index 0 in the list
+		hIndexed.add(H1_2); //index 1
+		hIndexed.add(H2_3); //index 2 etc.
+		hIndexed.add(H3_4);
+		hIndexed.add(H4_5);
+		hIndexed.add(H5_6);
+		hIndexed.add(H6_endEff);
 
 
 		if(from > to){
@@ -272,14 +280,17 @@ public class Robot {
 			min = from;
 		}
 
-		for(int i = max - 1; i >= min; i--)
-			H = MultiplyMatrices(H_indexed.get(i), H);
+		for(int i = max - 1; i >= min; i--){
+			H = Matrix.multiplyMatrices(hIndexed.get(i), H); //original line
+//			H = Matrix.multiplyMatrices(H, hIndexed.get(i));
+		}
 
 		T = new Target(H);
 
 		if(from < to){
 			H = T.getInvHomMatrix();
-			T.setHomMatrix(H);
+//			T.setHomMatrix(H);
+			T = new Target(H);
 		}
 
 		return T;
@@ -294,81 +305,6 @@ public class Robot {
 	//Part of PRIVATE methods that are used/called by inner methods
 	//
 
-	private void initializeArray(double[] array){
-
-		for(int i = 0; i < array.length; i++)
-			array[i] = 0;
-
-	}
-	
-	private void initializeMatrix(double[][] m){
-
-		for(int i = 0; i < m.length; i++)
-			for(int j = 0; j < m[0].length; j++)
-				m[i][j] = 0;
-
-	}
-	
-	private double[][] MultiplyScalMatr(double scalar, double[][] m){
-
-		for(int i = 0; i < m.length; i++)
-			for(int j = 0; j < m[0].length; j++)
-				m[i][j] = scalar*m[i][j];
-
-		return m;
-
-	}
-	
-	private double[][] MultiplyMatrices(double[][] left, double[][] right){
-
-		/*
-		 * Function implemented to multiply 2 matrices (useful in Hto_from)
-		 */
-
-		double[][] M = new double[left.length][right[0].length];
-
-		for(int row = 0; row < M.length; row++)
-			for(int column = 0; column < M[0].length; column++)
-				M[row][column] = 0;
-
-		if(left[0].length == right.length){
-
-			for(int row = 0; row < M.length; row++)
-				for(int column = 0; column < M[0].length; column++)
-					for(int i = 0; i < left[0].length; i++)
-						M[row][column] += left[row][i] * right[i][column];
-
-		}else{
-			System.out.println("The dimension of the matrices do not agree. [m*n n*p = m*p]");
-		}
-
-		return M;
-
-	}
-	
-	private double[][] SubtractMatrices(double[][] m1, double[][] m2){
-
-		/*
-		 * It returns m = m1 - m2.
-		 * If dimensions do not match, it returns null matrix of dim = m1.
-		 */
-
-		double[][] m = new double[m1.length][m1[0].length];
-
-		if(m2.length == m1.length && m2[0].length == m1[0].length){
-
-			for(int i = 0; i < m1.length; i++)
-				for(int j = 0; j < m1[0].length; j++)
-					m[i][j] = m1[i][j] - m2[i][j];
-
-		}else{
-			System.out.println("Matrices dimension do not match.");
-			initializeMatrix(m);
-		}
-
-		return m;
-
-	}
 	
 	private void copyRobotParameters (BufferedReader b, int section) throws IOException
 	{
@@ -528,50 +464,7 @@ public class Robot {
 		System.out.println("The current section being compiled is: " + sec);
 	}
 
-	
-
-	private void cog_wrtFrame0(double[][] cg){
-
-		/*
-		 * Input: cg(cog_Matrix) with respect to global frames (SolidWorks)
-		 * Output: It gives you cog_Matrix (cg) values with respect to frame 0
-		 */
-
-
-		double[] joint_values = new double[this.dof];
-		double[][] cg_i = new double[3][1];
-		double[][] cg0 = new double[3][this.dof];
-		double[][] cg0_i = new double[3][1];
-		Target T0_i = new Target();
-		double temp;
-
-		/*
-		 * I divide cg by 1000 in order to get m instead of mm
-		 */
-		for(int i = 0; i < cg.length; i++)
-			for(int j = 0; j < cg[0].length; j++)
-				cg[i][j] /= 1000;
-
-		for(int i = 0; i < this.dof; i++){
-
-			cg_i[0][0] = cg[0][i];
-			cg_i[1][0] = cg[1][i];
-			cg_i[2][0] = cg[2][i];
-
-			initializeArray(joint_values);
-
-			T0_i = Hto_from(i+1, 0, joint_values);
-			cg0_i = MultiplyMatrices(T0_i.getInvRotation(), cg_i);
-
-			cg0[0][i] = cg0_i[0][0];
-			cg0[1][i] = cg0_i[1][0];
-			cg0[2][i] = cg0_i[2][0];
-
-		}
-
-	}
-
-	private List<double[][]> inTensi_wrtFramei(List<double[][]> inTens_sw){
+	private void inTensiWRTFramei(){
 
 		/*
 		 * Input: Number of the joint of which you want the inertia tensors
@@ -579,73 +472,119 @@ public class Robot {
 		 */
 
 		int linkNum = 0;
-		double prop = 98000/46249; /* ??????????????????? */
-		double[] joint_values = new double[this.dof];
-		double[] massesInMm = new double[this.linkMasses.length];
+		double prop = 98000.0/46249.0 ; /* ??????????????????? */
+		
+//		System.out.println("Prop: " + prop);
+		
+		double[] jointValues = new double[this.dof];
+		double[] massesInGr = new double[this.linkMasses.length];
 		double[][] BUFFER = new double[3][3];
-		double[][] inTensi_i = new double[3][3];
-		double[][] inTens0_i = new double[3][3];
-		List<double[][]> inTens_prop = new ArrayList<double[][]>();
-		List<double[][]> inTens = new ArrayList<double[][]>();
+		double[][] inTensi = new double[3][3];
+		double[][] inTens0 = new double[3][3];
 		Target T = new Target();
 		
 		/*
 		 * from link_masses in m to link_masses in mm
 		 */
-		for(int i = 0; i < massesInMm.length; i++)
-			massesInMm[i] = this.linkMasses[i]*1000;
-
-		cog_wrtFrame0(this.cogMatrix); 
+		for(int i = 0; i < massesInGr.length; i++){
+			massesInGr[i] = this.linkMasses[i]*1000;
+		}
 		
-		/*
-		 * Values from cog_wrtFrame0 are in m so I have to multiply them by 1000
-		 */
-		for(int i = 0; i < cogMatrix.length; i++)
-			for(int j = 0; j < cogMatrix[0].length; j++)
-				cogMatrix[i][j] *= 1000;
+		//cog_wrtFrame0(this.cogMatrix); 
+	
 		
-		inTens_prop = inTens_sw;
-		/* I multiply inTens_00 * prop */
-		for(double[][] link:inTens_prop)
-			for(int i = 0; i < 3; i++)
-				for(int j = 0; j < 3; j++)
-					link[i][j] *= prop;
+	
 		
-		for(double[][] link:inTens_sw){
+		for(double[][] link:this.inertiaTens){
+			
+			double[][] linkProp = new double[link.length][link[0].length];
+			for(int i = 0; i < linkProp.length; i++){
+				for(int j = 0; j < linkProp[0].length; j++){
+					linkProp[i][j] = link[i][j]*prop;
+				}
+			}
+//			
+//			System.out.println("Il tensore d'inerzia "+ (linkNum+1) + "(originale) vale :");
+//			Matrix.displayMatrix(link);
+//			System.out.println(" ");
+			
+			link[0][0] += massesInGr[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));			
+			link[1][1] += massesInGr[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
+			link[2][2] += massesInGr[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[1][linkNum], 2));
 
-			link[0][0] += massesInMm[linkNum]*(Math.pow(this.cogMatrix[1][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
-			link[1][1] += massesInMm[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[2][linkNum], 2));
-			link[2][2] += massesInMm[linkNum]*(Math.pow(this.cogMatrix[0][linkNum], 2) + Math.pow(this.cogMatrix[1][linkNum], 2));
-
-			link[0][1] -= massesInMm[linkNum]*(this.cogMatrix[0][linkNum]*this.cogMatrix[1][linkNum]);
+			link[0][1] -= massesInGr[linkNum]*(this.cogMatrix[0][linkNum]*this.cogMatrix[1][linkNum]);
 			link[1][0] = link[0][1];
-			link[0][2] -= massesInMm[linkNum]*(this.cogMatrix[0][linkNum]*this.cogMatrix[2][linkNum]);
+			link[0][2] -= massesInGr[linkNum]*(this.cogMatrix[0][linkNum]*this.cogMatrix[2][linkNum]);
 			link[2][0] = link[0][2];
-			link[1][2] -= massesInMm[linkNum]*(this.cogMatrix[1][linkNum]*this.cogMatrix[2][linkNum]);
+			link[1][2] -= massesInGr[linkNum]*(this.cogMatrix[1][linkNum]*this.cogMatrix[2][linkNum]);
 			link[2][1] = link[1][2];
 
-			inTens0_i = SubtractMatrices(inTens_prop.get(linkNum), link);
+//			System.out.println("Mass " + (linkNum+1)+ ": " + massesInGr[linkNum]);
+//			System.out.println("CoGMatrix [0]["+linkNum+"]  : " + this.cogMatrix[0][linkNum]);
+//			System.out.println("CoGMatrix [1]["+linkNum+"]  : " + this.cogMatrix[1][linkNum]);
+//			System.out.println("CoGMatrix [2]["+linkNum+"]  : " + this.cogMatrix[2][linkNum]);
+//			System.out.println("Il tensore d'inerzia "+ (linkNum+1) + " (modificato) vale :");
+//			Matrix.displayMatrix(link);
+//			System.out.println(" ");
+//			System.out.println("Mentre quello motliplicato per prop vale: ");
+//			Matrix.displayMatrix(linkProp);
+//			System.out.println(" ");
+//			
+			
+			inTens0 = Matrix.subtractMatrices(linkProp, link);
+			
+//			
+//			System.out.println("Igc"+(linkNum+1)+" :");
+//			Matrix.displayMatrix(inTens0);
+//			System.out.println(" ");
+			
+			Arrays.fill(jointValues, 0);
 
-			initializeArray(joint_values);
-
-			T = Hto_from(linkNum, 0, joint_values);
+			T = hToFrom(linkNum+1, 0, jointValues);
 			/* I have to perform the following calculation: Ii_i = R0_i^(-1)*I0_i*R0_i
 			 * to do so, I use a buffer 
 			 */
-			BUFFER = MultiplyMatrices(T.getInvRotation(), inTens0_i);
-			inTensi_i = MultiplyMatrices(BUFFER, T.getRotation());
+			BUFFER = Matrix.multiplyMatrices(T.getInvRotation(), inTens0);
+			inTensi = Matrix.multiplyMatrices(BUFFER, T.getRotation());
 
+//			System.out.println("R0_" + (linkNum+1) +" vale :");
+//			Matrix.displayMatrix(T.getRotation());
+//			System.out.println(" ");
+//			System.out.println("R0_"+ (linkNum+1) +"^-1 vale :");
+//			Matrix.displayMatrix(T.getInvRotation());
+//			System.out.println(" ");
+			
 			/* I need inTens to be in kg*m^2(so far they were in g*mm^2)
-			 *  then I multiply every element of the list for 10^-9 */			
-			inTensi_i = Matrix.multiplyScalMatr(10E-9, inTensi_i);
-			inTens.add(inTensi_i);
+			 *  then I multiply every element of the list by 10^-9 */			
+			inTensi = Matrix.multiplyScalMatr(1E-9, inTensi); //it seems like it should be E-10....why??
+			
+//			
+//			System.out.println(" ");
+//			System.out.println("Tensore d'inerzia i_i modificato di indice  " + (linkNum+1));
+//			Matrix.displayMatrix(inTensi);
+//			System.out.println(" ");
+			
+			link = inTensi;
+			for(int i = 0; i < link.length; i++){
+				for(int j = 0; j < link[0].length; j++){
+					link[i][j] = inTensi[i][j];
+				}
+			}
+			
+			double[][] TEST = new double[3][3];
+			Matrix.fill(TEST, 0);
+			link = TEST;
+			
+//			System.out.println(" ");
+//			System.out.println("Tensore d'inerzia modificato di indice  " + linkNum);
+//			Matrix.displayMatrix(inTensi_i);
+//			System.out.println(" ");
 
 			linkNum++;
 
 		}
-
-		return inTens;
-
+		
+		
 	}
 
 	private void xmlBuilder(String FilePath){
@@ -675,7 +614,6 @@ public class Robot {
 	     		 */
 	        	 
 	        	 int linkNumber = (int) Double.parseDouble(link.selectSingleNode("number").getText()) - 1;
-	        	 Node node_length = document.selectSingleNode(rootName + "/link/length");
 	        	 double a = Double.parseDouble(link.selectSingleNode("length/a").getText());
 	        	 double d = Double.parseDouble(link.selectSingleNode("length/d").getText());
 	        	 double mass = Double.parseDouble(link.selectSingleNode("mass").getText());
@@ -706,9 +644,22 @@ public class Robot {
 	        	 for(int i=0; i < CoG.length; i++){this.cogMatrix[i][linkNumber] = CoG[i];}
 	        	 
 	        	 this.inertiaTens.add(linkNumber, inertia_link);
-	        	 
 	         }
 	         
+	        this.inTensiWRTFramei();
+	        this.jointDistances();
+//	        System.out.println(" ");
+//			Matrix.displayMatrix(this.inertiaTens.get(0));
+//			System.out.println(" ");
+	        
+			System.out.println("Rc matrix:");
+			Matrix.displayMatrix(this.rc);
+			System.out.println(" ");
+			
+			System.out.println("Rici matrix: ");
+			Matrix.displayMatrix(this.rici);
+			System.out.println(" ");
+	        
 		}
 		catch(DocumentException e){
 			System.out.println("Check that the FilePath name is correct please. Unable to locate the file ");
@@ -717,18 +668,52 @@ public class Robot {
 	}
 	
 	private void jointDistances(){
+		
+		
+		/*
+		 * Change the CoG matrix unit from mm to m
+		 */
+		
+		for(int i = 0; i < cogMatrix.length; i++)
+			for(int j = 0; j < cogMatrix[0].length; j++)
+				cogMatrix[i][j] /= 1000;
+		
+		
 		double[] theta = new double[this.dof];
 		Arrays.fill(theta, 0);
 		
 		for(int i=0; i < this.dof; i++){
-			Target Tnum = this.Hto_from(i, 0, theta);
+			Target Tnum = this.hToFrom(i+1, 0, theta);
+//			
+//			System.out.println("Position Vector. Index: " + (i+1));
+//			Matrix.displayVector(Tnum.getPosition());
+//			System.out.println(" ");
+//			
+//			System.out.println("Rotation matrix. Index: " + (i+1));
+//			Matrix.displayMatrix(Tnum.getRotation());
+//			System.out.println(" ");
+			
+			System.out.println("Homogenous matrix. Index: " + (i+1));
+			Matrix.displayMatrix(Tnum.getHomMatrix());
+			System.out.println(" ");
+			
+			
 			double[][] temp = Tnum.getInvHomMatrix();
+			
+//			System.out.println("Inverse homogenous matrix. Index: " + (i+1));
+//			Matrix.displayMatrix(temp);
+//			System.out.println(" ");
+			
 			double[] cogLink = {this.cogMatrix[0][i],this.cogMatrix[1][i],this.cogMatrix[2][i],1}; //Vector to be considered 4x1
 			/*
 			 * The whole calculation could be optimized but is not really worth it
 			 */
 			double[] rc4Link = Matrix.multiplyMatrixVector(temp, cogLink);
 			double[] rcLink = {rc4Link[0],rc4Link[1],rc4Link[2]};
+			
+			System.out.println("Rc4Link. Index: " + (i+1));
+			Matrix.displayVector(rc4Link);
+			System.out.println(" ");
 			
 			this.rc[i] = rcLink;
 		}

@@ -2,7 +2,7 @@
 
 public class Target {
 
-	private double[][] hom_matrix;
+	private double[][] homMatrix;
 	private double[] position;
 	private double[][] rotation;
 
@@ -15,7 +15,7 @@ public class Target {
 
 	public Target(){
 
-		hom_matrix = new double[4][4];
+		homMatrix = new double[4][4];
 		position = new double[3];
 		rotation = new double[3][3];
 
@@ -24,27 +24,24 @@ public class Target {
 
 		for(int i = 0; i < I.length; i++)
 			for (int j = 0; j < I[i].length; j++){
-				hom_matrix[i][j] = I[i][j];
+				homMatrix[i][j] = I[i][j];
 				if(i != 3 && j == 3)
 					position[i] = I[i][j];
 				if(i != 3 && j != 3)
 					rotation[i][j] = I[i][j];
 			}
-
-		return;
-
 	}
 
 	public Target(double[][] T){
 
-		hom_matrix = new double[4][4];
+		homMatrix = new double[4][4];
 		position = new double[3];
 		rotation = new double[3][3];
 
 		if(T.length == 4 && T[0].length == 4){		
 			for(int i = 0; i < T.length; i++)
-				for (int j = 0; j < T[i].length; j++){
-					hom_matrix[i][j] = T[i][j];
+				for (int j = 0; j < T[0].length; j++){
+					homMatrix[i][j] = T[i][j];
 					if(i != 3 && j == 3)
 						position[i] = T[i][j];
 					if(i != 3 && j != 3)
@@ -52,22 +49,21 @@ public class Target {
 				}
 		}else{
 			System.out.println("Wrong dimensions. Homogeneus matrix must be 4x4.");
-			return;
 		}
 
 	}
 
 	public Target(double[] pos, double[][] rot){
 
-		hom_matrix = new double[4][4];
+		homMatrix = new double[4][4];
 		position = new double[3];
 		rotation = new double[3][3];
 
-		hom_matrix = identityMatr();
+		homMatrix = identityMatr();
 
 		if(pos.length == 3){
 			for(int i = 0; i < pos.length; i++){
-				hom_matrix[i][3] = pos[i];
+				homMatrix[i][3] = pos[i];
 				position[i] = pos[i];
 			}
 		}else{
@@ -78,7 +74,7 @@ public class Target {
 		if(rot.length == 3 && rot[0].length == 3){
 			for(int i = 0; i < rot.length; i++)
 				for(int j = 0; j < rot[0].length; j++){
-					hom_matrix[i][j] = rot[i][j];
+					homMatrix[i][j] = rot[i][j];
 					rotation[i][j] = rot[i][j];
 				}
 		}else{
@@ -94,49 +90,30 @@ public class Target {
 
 	public double[][] getHomMatrix(){
 
-		return hom_matrix;
+		return homMatrix;
 
 	}
 	
 public double[][] getInvHomMatrix(){
 		
 		/*
-		 * It returns the inverse matrix using Gaussian Elimination Algorithm
-		 * Input: 4x4 matrix
+		 * Inverse of an Affine Matrix
 		 */
-
-		double temp;
-		double[][] INV = new double[4][4];
-		INV = identityMatr();
-
-		for(int k = 0; k < this.getHomMatrix().length; k++){
-
-			temp = this.getHomMatrix()[k][k];	
-
-			for(int j = 0; j < this.getHomMatrix()[0].length; j++){
-
-				this.getHomMatrix()[k][j] /= temp;									
-				INV[k][j] /= temp;		
-
-			}
-
-			for(int i=0; i < this.getHomMatrix().length; i++){
-
-				temp = this.getHomMatrix()[i][k];	
-
-				for(int j = 0; j < this.getHomMatrix()[0].length; j++){
-
-					if(i == k)
-						break;
-
-					this.getHomMatrix()[i][j] -= this.getHomMatrix()[k][j]*temp;						
-					INV[i][j] -= INV[k][j]*temp;
-
-				}
-			}
+		
+		double[][] rotMatrix = new double[3][3];
+		Matrix.fill(rotMatrix, this.rotation);
+		
+		rotMatrix = Matrix.transpose(rotMatrix);
+		
+		double[] posVector = new double[3];
+		for(int i = 0; i < posVector.length; i++){
+			posVector[i] = - position[i];
 		}
+		posVector = Matrix.multiplyMatrixVector(rotMatrix, posVector);
 
-		return INV;
+		Target result = new Target(posVector,rotMatrix);
+
+		return result.getHomMatrix();
 
 }
 
@@ -158,11 +135,11 @@ public double[][] getInvHomMatrix(){
 		 * R is orthogonal so its inverse matrix is equal to its transpose matrix
 		 */
 
-		double[][] INV = new double[4][4];
+		double[][] INV = new double[3][3];
 
-		for(int i = 0; i < this.getHomMatrix().length; i++)
-			for(int j = 0; j < this.getHomMatrix()[0].length; j++)
-				INV[i][j] = this.getHomMatrix()[j][i];
+		for(int i = 0; i < this.getRotation().length; i++)
+			for(int j = 0; j < this.getRotation()[0].length; j++)
+				INV[i][j] = this.getRotation()[j][i];
 
 		return INV;
 
@@ -176,7 +153,7 @@ public double[][] getInvHomMatrix(){
 		
 		for(int i = 0; i < 4; i++)
 			for(int j = 0; j < 4; j++)
-				this.hom_matrix[i][j] = H[i][j];
+				this.homMatrix[i][j] = H[i][j];
 		
 	}
 	
@@ -185,12 +162,12 @@ public double[][] getInvHomMatrix(){
 	
 	//OTHER PUBLIC methods
 
-	public void TranslateTarget (double[] vector)
+	public void translateTarget (double[] vector)
 	{
 		for(int i = 0 ; i < this.position.length ; i++)
 		{
 		this.position[i] += vector[i];
-		this.hom_matrix[i][3] = vector[i];
+		this.homMatrix[i][3] = vector[i];
 		}
 	}
 	

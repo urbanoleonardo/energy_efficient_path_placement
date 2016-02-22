@@ -88,9 +88,9 @@ public class Test_robot_constructor {
 		Target testTarget2 = new Target(matrix2);
 		Path test_path = new Path(testTarget1, testTarget2, t_sample, x_sample);
 		
-		test_path.SetMaxAcc(acceleration);
-		test_path.SetMaxVel(velocity);
-		test_path.Interpolate();
+		test_path.setMaxAcc(acceleration);
+		test_path.setMaxVel(velocity);
+		test_path.interpolate();
 		Trajectory test_output = test_path.getTrajectory();
 		System.out.println("Number of points : " + test_output.points.size());
 		
@@ -203,7 +203,7 @@ public class Test_robot_constructor {
 		}
 		
 		
-		jointLimit = newRobotXML.getParameters("joint limits");
+		jointLimit = newRobotXML.getJointLimits();
 		for(int i=0; i<jointLimit.length; i++) //checked and working
 		{
 			for(int j=0;j<jointLimit[0].length;j++)
@@ -214,7 +214,7 @@ public class Test_robot_constructor {
 		}
 		
 		
-		COG = newRobotXML.getParameters("center of gravity");
+		COG = newRobotXML.getCoGMatrix();
 		for(int i=0; i<COG.length; i++) //checked and working
 		{
 			for(int j=0;j<COG[0].length;j++)
@@ -224,44 +224,33 @@ public class Test_robot_constructor {
 			System.out.println("");
 		}
 		
-
-		double[][] inerT = newRobotXML.getParameters("center of gravity");
-		for(int i=0; i<COG.length; i++) //checked and working
-		{
-			for(int j=0;j<COG[0].length;j++)
-			{
-				System.out.print(COG[i][j] + " ");
-			}
-			System.out.println("");
-		}
-		
-		double[][] R33 = {
-				{0, 0, 1},
-				{0, 1, 0},
-				{-1, 0, 0}
-				
-		};
-		double[][] R6tcp = {
-				{1, 0, 0},
-				{0, 1, 0},
-				{0, 0, 1}
-				
-		};
-		double[][] R0tcp = test_output.points.get(3).getRotation();
-		double[][] R_zyz = Matrix.multiplyMatrices(R0tcp, Matrix.transpose(R6tcp));
-		R_zyz = Matrix.transpose(Matrix.multiplyMatrices(R_zyz, R33));
-		
-		
-		System.out.println("Righe : " + R_zyz.length + " Colonne : " + R_zyz[0].length);
-		
-		for(int i=0; i< R_zyz.length;i++)
-		{
-			for(int j=0; j<R_zyz[0].length; j++)
-			{
-				System.out.print(R_zyz[i][j] + " ");
-			}
-			System.out.println(" ");
-		}
+//		double[][] R33 = {
+//				{0, 0, 1},
+//				{0, 1, 0},
+//				{-1, 0, 0}
+//				
+//		};
+//		double[][] R6tcp = {
+//				{1, 0, 0},
+//				{0, 1, 0},
+//				{0, 0, 1}
+//				
+//		};
+//		double[][] R0tcp = test_output.points.get(3).getRotation();
+//		double[][] R_zyz = Matrix.multiplyMatrices(R0tcp, Matrix.transpose(R6tcp));
+//		R_zyz = Matrix.transpose(Matrix.multiplyMatrices(R_zyz, R33));
+//		
+//		
+//		System.out.println("Righe : " + R_zyz.length + " Colonne : " + R_zyz[0].length);
+//		
+//		for(int i=0; i< R_zyz.length;i++)
+//		{
+//			for(int j=0; j<R_zyz[0].length; j++)
+//			{
+//				System.out.print(R_zyz[i][j] + " ");
+//			}
+//			System.out.println(" ");
+//		}
 		
 		Target[] targets = new Target[2];
 		targets[0] = testTarget1;
@@ -286,6 +275,76 @@ public class Test_robot_constructor {
 //		System.out.println(" ");
 //		Matrix.displayMatrix(newRobotXML.Hto_from(4, 3,thetaValues).getHomMatrix());
 //		
+//		double[] joint_values = {0,0,0,0,0,0};
+//		linkLength = newRobotXML.getLinkLength();
+//		
+//		double[][] H0_1 = {
+//				{Math.cos(joint_values[0]), -Math.sin(joint_values[0]), 0, 0},
+//				{Math.sin(joint_values[0]), Math.cos(joint_values[0]), 0, 0},
+//				{0, 0, 1, linkLength[0][1]},
+//				{0, 0, 0, 1}
+//		};
+//		
+//		Matrix.displayMatrix(H0_1);
+//		System.out.println("");
+//		double[][] H1_2 = {
+//				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, linkLength[1][0]},
+//				{0, 0, -1, 0},
+//				{Math.sin(joint_values[1]), Math.cos(joint_values[1]), 0, 0},
+//				{0, 0, 0, 1}
+//		};
+//		
+//		Matrix.displayMatrix(H1_2);
+//		System.out.println("");
+//		double[][] H2_3 = {
+//				{Math.cos(joint_values[2]), -Math.sin(joint_values[2]), 0, 0},
+//				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, linkLength[2][1]},
+//				{0, 0, 1, 0},
+//				{0, 0, 0, 1}
+//		};
+//		
+//		Matrix.displayMatrix(H2_3);
+//		System.out.println("");
+//		double[][] H3_4 = {
+//				{0, 0, 1, linkLength[3][0] + linkLength[4][0]},
+//				{Math.sin(joint_values[3]), Math.cos(joint_values[3]), 0, 0},
+//				{-Math.cos(joint_values[3]), Math.sin(joint_values[3]), 0, 0},
+//				{0, 0, 0, 1}
+//		};
+//		
+//		Matrix.displayMatrix(H3_4);
+//		System.out.println("");
+//		double[][] H4_5 = {
+//				{0, 0, -1, 0},
+//				{Math.sin(joint_values[4]), Math.cos(joint_values[4]), 0, 0},
+//				{Math.cos(joint_values[4]), -Math.sin(joint_values[4]), 0, 0},
+//				{0, 0, 0, 1}
+//		};
+//		
+//		Matrix.displayMatrix(H4_5);
+//		System.out.println("");
+//		double[][] H5_6 = {
+//				{0, 0, 1, 0},
+//				{Math.sin(joint_values[5]), Math.cos(joint_values[5]), 0, 0},
+//				{-Math.cos(joint_values[5]), Math.sin(joint_values[5]), 0, 0},
+//				{0, 0, 0, 1}
+//		};
+//		
+//		Matrix.displayMatrix(H5_6);
+//		System.out.println("");
+//		double[][] H6_endEff = {
+//				{1, 0, 0, 0},
+//				{0, 1, 0, 0},
+//				{0, 0, 1, 0},
+//				{0, 0, 0, 1}
+//		};
+		
+		
+//		Matrix.displayMatrix(H6_endEff);
+		
+		
+		
+		
 	}
 	
 	public static double[][] MultiplyMatrices(double[][] left, double[][] right){

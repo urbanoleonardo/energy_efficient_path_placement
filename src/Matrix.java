@@ -229,4 +229,27 @@ public class Matrix {
 		}
 	}
 	
+	public static void displayVector(double[] matrix){
+		System.out.println(" ");
+		for(int i = 0; i < matrix.length; i++){
+			System.out.print(matrix[i] + " ");
+		}
+		System.out.println(" ");
+	}
+	
+	public static void fill(double[][] matrix, double[][] values){
+		for(int i = 0; i < matrix.length; i++){			
+			for(int j = 0; j < matrix[0].length; j++){
+				matrix[i][j] = values[i][j];
+				}
+		}
+	}
+	
+	public static void fill(double[][] matrix, double value){
+		for(int i = 0; i < matrix.length; i++){			
+			for(int j = 0; j < matrix[0].length; j++){
+				matrix[i][j] = value;
+				}
+		}
+	}
 }
