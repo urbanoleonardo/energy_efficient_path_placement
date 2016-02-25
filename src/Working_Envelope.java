@@ -90,6 +90,21 @@ public class Working_Envelope {
 		return resolution;
 
 	}
+	
+	public int[] getSize(){
+		
+		/*
+		 * To round up to the next decimal I have used the formula a/b = (a + b - 1)/b (more efficient..)
+		 */
+		
+		int[] size = new int[3];
+		
+		for(int i = 0; i < 3; i++)
+			size[i] =  (int) ((this.max_values[i] - this.min_values[i] + this.resolution - 1)/this.resolution);
+		
+		return size;
+		
+	}
 
 	public void setResolution(double res){
 
