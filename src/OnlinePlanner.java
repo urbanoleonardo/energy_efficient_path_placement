@@ -152,10 +152,7 @@ public class OnlinePlanner implements Runnable{
 	}
 	
 	public void run(Target newTarget){
-		targets = new Target[1];
-		targets [0] = newTarget;
-		targetsLength = 1;
-		this.run();
+		
 		
 	}
 	
