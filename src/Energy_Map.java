@@ -92,7 +92,7 @@ public class Energy_Map {
 		
 		p = new Path(initial_position, final_position, t_sample, x_sample);
 		
-		p.Interpolate();
+		p.interpolate();
 		
 		/*
 		 * Getting robot data from user
