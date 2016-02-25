@@ -30,6 +30,7 @@ public class Robot {
 	private double[][] cogMatrix; //center of gravity matrix (SolidWorks)
 	private double[][] rc; //it has to be structured as 6x3 matrix to work down in the dynamic
 	private double[][] rici; //6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
+	private double[][] r;
 	Target location;
 
 	public static void main(String[] args){
@@ -175,6 +176,10 @@ public class Robot {
 
 	public double[][] getRici() {
 		return rici;
+	}
+	
+	public double[][] getR(){
+		return r;
 	}
 	//END of GET methods
 
@@ -555,25 +560,21 @@ public class Robot {
 //			System.out.println(" ");
 			
 			/* I need inTens to be in kg*m^2(so far they were in g*mm^2)
-			 *  then I multiply every element of the list by 10^-9 */			
-			inTensi = Matrix.multiplyScalMatr(1E-9, inTensi); //it seems like it should be E-10....why??
+			 *  then I multiply every element of the list by 1E-9 */			
+			inTensi = Matrix.multiplyScalMatr(1E-9, inTensi); 
 			
-//			
+			
 //			System.out.println(" ");
 //			System.out.println("Tensore d'inerzia i_i modificato di indice  " + (linkNum+1));
 //			Matrix.displayMatrix(inTensi);
 //			System.out.println(" ");
 			
-			link = inTensi;
 			for(int i = 0; i < link.length; i++){
 				for(int j = 0; j < link[0].length; j++){
 					link[i][j] = inTensi[i][j];
 				}
 			}
 			
-			double[][] TEST = new double[3][3];
-			Matrix.fill(TEST, 0);
-			link = TEST;
 			
 //			System.out.println(" ");
 //			System.out.println("Tensore d'inerzia modificato di indice  " + linkNum);
@@ -638,8 +639,8 @@ public class Robot {
 	        	 this.linkLength[linkNumber][0] = a;
 	        	 this.linkLength[linkNumber][1] = d;
 	        	 this.linkMasses[linkNumber] = mass;
-	        	 this.jointLimits[linkNumber][0] = min_limit * Math.PI / 180;
-	        	 this.jointLimits[linkNumber][1] = max_limit * Math.PI / 180;
+	        	 this.jointLimits[linkNumber][0] = min_limit * Math.PI / 180.0;
+	        	 this.jointLimits[linkNumber][1] = max_limit * Math.PI / 180.0;
 	        	 
 	        	 for(int i=0; i < CoG.length; i++){this.cogMatrix[i][linkNumber] = CoG[i];}
 	        	 
@@ -652,13 +653,13 @@ public class Robot {
 //			Matrix.displayMatrix(this.inertiaTens.get(0));
 //			System.out.println(" ");
 	        
-			System.out.println("Rc matrix:");
-			Matrix.displayMatrix(this.rc);
-			System.out.println(" ");
-			
-			System.out.println("Rici matrix: ");
-			Matrix.displayMatrix(this.rici);
-			System.out.println(" ");
+//			System.out.println("Rc matrix:");
+//			Matrix.displayMatrix(this.rc);
+//			System.out.println(" ");
+//			
+//			System.out.println("Rici matrix: ");
+//			Matrix.displayMatrix(this.rici);
+//			System.out.println(" ");
 	        
 		}
 		catch(DocumentException e){
@@ -692,10 +693,10 @@ public class Robot {
 //			System.out.println("Rotation matrix. Index: " + (i+1));
 //			Matrix.displayMatrix(Tnum.getRotation());
 //			System.out.println(" ");
-			
-			System.out.println("Homogenous matrix. Index: " + (i+1));
-			Matrix.displayMatrix(Tnum.getHomMatrix());
-			System.out.println(" ");
+//			
+//			System.out.println("Homogenous matrix. Index: " + (i+1));
+//			Matrix.displayMatrix(Tnum.getHomMatrix());
+//			System.out.println(" ");
 			
 			
 			double[][] temp = Tnum.getInvHomMatrix();
@@ -711,9 +712,9 @@ public class Robot {
 			double[] rc4Link = Matrix.multiplyMatrixVector(temp, cogLink);
 			double[] rcLink = {rc4Link[0],rc4Link[1],rc4Link[2]};
 			
-			System.out.println("Rc4Link. Index: " + (i+1));
-			Matrix.displayVector(rc4Link);
-			System.out.println(" ");
+//			System.out.println("Rc4Link. Index: " + (i+1));
+//			Matrix.displayVector(rc4Link);
+//			System.out.println(" ");
 			
 			this.rc[i] = rcLink;
 		}
@@ -743,6 +744,14 @@ public class Robot {
 				{0,0,0}
 		};
 		this.rici = Matrix.subtractMatrices(rc, r);
+		
+		//this lines will have to changed and made parametric!!!
+		this.r = new double[r.length][r[0].length];
+		for(int i = 0; i < r.length; i++){
+			for(int j = 0; j < r[0].length; j++){
+				this.r[i][j] = r[i][j];
+			}
+		}
 		
 	}
 	

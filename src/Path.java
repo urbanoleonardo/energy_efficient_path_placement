@@ -118,8 +118,8 @@ public class Path {
 		
 		double new_position;
 		
-		interpolatedPath.points.add(this.initialPosition);
-		interpolatedPath.timeInstants.add(time);
+//		interpolatedPath.points.add(this.initialPosition);
+//		interpolatedPath.timeInstants.add(time);
 		
 		if(((2*accTime)*this.maxVel/2.0) < distance)
 		{
@@ -152,7 +152,7 @@ public class Path {
 		
 		dec_phase = false;
 		
-		while(time <= (tot_time - this.tSample))
+		while(time <= tot_time)
 		{
 			++N;
 			
@@ -193,11 +193,11 @@ public class Path {
 			//add the new target to the trajectory
 			interpolatedPath.points.add(newPointInTrajectory);
 			
-			time += this.tSample;
+//			time += this.tSample;
 			
 			//add the time instant to the trajectory's list
 			interpolatedPath.timeInstants.add(time);
-		
+			time += this.tSample;
 			
 			
 		}//end of the WHILE loop
