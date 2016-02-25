@@ -252,4 +252,45 @@ public class Matrix {
 				}
 		}
 	}
+	
+	public static int[] getIndMaxValue3D(double[][][] matrix){
+		
+		double max = 0;
+		int[] index = new int[3];
+		
+		for(int i = 0; i < matrix.length; i++)
+			for(int j = 0; j < matrix[0].length; j++)
+				for(int k = 0; k < matrix[0][0].length; k++)
+					
+					if(matrix[i][j][k] > max){
+						max = matrix[i][j][k];
+						index[0] = i;
+						index[1] = j;
+						index[2] = k;
+					}
+		
+		return index;
+		
+	}
+	
+	public static int[] getIndMinValue3D(double[][][] matrix){
+		
+		double min = Double.MAX_VALUE;
+		int[] index = new int[3];
+		
+		for(int i = 0; i < matrix.length; i++)
+			for(int j = 0; j < matrix[0].length; j++)
+				for(int k = 0; k < matrix[0][0].length; k++)
+					
+					if(matrix[i][j][k] < min){
+						min = matrix[i][j][k];
+						index[0] = i;
+						index[1] = j;
+						index[2] = k;
+					}
+		
+		return index;
+		
+	}
+	
 }
