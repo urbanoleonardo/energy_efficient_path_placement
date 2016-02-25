@@ -266,10 +266,14 @@ public class Matrix {
 				for(int k = 0; k < matrix[0][0].length; k++)
 					
 					if(matrix[i][j][k] > max){
+						if(matrix[i][j][k] == 0)
+							continue;
+						else{
 						max = matrix[i][j][k];
 						index[0] = i;
 						index[1] = j;
 						index[2] = k;
+						}
 					}
 		
 		return index;

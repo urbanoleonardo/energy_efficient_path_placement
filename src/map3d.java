@@ -36,13 +36,10 @@ public class map3d{
 	private Canvas3D canvas = null;
 	//	private TransformGroup viewtrans = null;
 
-	public map3d(Robot r, Path p, Working_Envelope we){
+	public map3d(String robotDirectory, Path p, Working_Envelope we){
 		
-		/*
-		 * Maybe it's better to set directory as input instead of robot
-		 */
-		String directory = "C:\\Utenti\\Leonardo\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
-		r = new Robot(directory, true);
+
+		Robot r = new Robot(robotDirectory, true);
 
 		u = new SimpleUniverse(canvas);
 
@@ -252,24 +249,8 @@ public class map3d{
 
 		double[][][] energyMatrix = new double[size[0]][size[1]][size[2]];
 		
-		double[][] h1 = {
-				{0.0, 0.0, 1.0, 0.59627},
-				{1.0, 0.0, 0.0, 0.0},
-				{0.0, 1.0, 0.0, 0.66282},
-				{0.0, 0.0, 0.0, 1.0}
-		};
-		double[][] h2 = {
-				{0.0, 0.0, 1.0, 0.59627},
-				{1.0, 0.0, 0.0, -0.21132},
-				{0.0, 1.0, 0.0, 0.58041},
-				{0.0, 0.0, 0.0, 1.0}};
-		
-		Target testTarget1 = new Target(h1);
-		Target testTarget2 = new Target(h2);
-		Target[] targets = new Target[2];
-		targets[0] = testTarget1;
-		targets[1] = testTarget2;
-		
+		Target[] targets = p.getPathPositions();
+				
 		/*
 		 * First of all, I need to get the 3d matrix with energy values
 		 */
@@ -291,7 +272,7 @@ public class map3d{
 					
 					dynSolution.run();
 					
-//					energyMatrix[i][j][k] = ;
+					energyMatrix[i][j][k] = dynSolution.getEnergyList().get(0);
 					
 					k++;
 					
@@ -395,9 +376,32 @@ public class map3d{
 
 	public static void main(String[] args) {
 		
-//		Robot r = new Robot();
+		String directory = "C:\\Users\\Leonardo Urbano\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
 		
-//		Path p = new Path();
+		double[][] h1 = {
+				{0.0, 0.0, 1.0, 0.59627},
+				{1.0, 0.0, 0.0, 0.0},
+				{0.0, 1.0, 0.0, 0.66282},
+				{0.0, 0.0, 0.0, 1.0}
+		};
+		double[][] h2 = {
+				{0.0, 0.0, 1.0, 0.59627},
+				{1.0, 0.0, 0.0, -0.21132},
+				{0.0, 1.0, 0.0, 0.58041},
+				{0.0, 0.0, 0.0, 1.0}};
+		
+		Target testTarget1 = new Target(h1);
+		Target testTarget2 = new Target(h2);
+		Target[] targets = new Target[2];
+		targets[0] = testTarget1;
+		targets[1] = testTarget2;
+		double x_sample = 1E-3;
+		double t_sample = 0.01;
+		double acceleration = 1.0;
+		double velocity = 0.2;
+		Path p = new Path(targets[0], targets[1], t_sample, x_sample);
+		p.setMaxAcc(acceleration);
+		p.setMaxVel(velocity);
 		
 		double[] minValues = {0, 0, 0};
 		double[] maxValues = {5, 5, 5};
@@ -408,7 +412,7 @@ public class map3d{
 		 */
 		Working_Envelope we = new Working_Envelope(minValues, maxValues, resolution);
 
-//		new map3d(r, p, we);
+		new map3d(directory, p, we);
 
 	}
 
