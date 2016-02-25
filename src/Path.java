@@ -215,12 +215,16 @@ public class Path {
 		return interpolatedPath;
 	}
 	
-	public void TranslateTrajectory(double[] vector)
-	{
+	public void translateTrajectory(double[] vector){
 		for(Target i : this.interpolatedPath.points)
 		{
 			i.translateTarget(vector);
 		}
+	}
+	
+	public void translateTargets(double[] vector){
+		this.initialPosition.translateTarget(vector);
+		this.finalPosition.translateTarget(vector);
 	}
 	
 	

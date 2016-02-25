@@ -117,7 +117,7 @@ public class Energy_Map {
 					current[2] = y;
 					current[3] = z;
 					
-					p.TranslateTrajectory(current);
+					p.translateTrajectory(current);
 					
 				}
 	
