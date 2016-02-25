@@ -25,6 +25,9 @@ public class OnlinePlanner implements Runnable{
 	
 	private double[][] rici; //it has to be structured as 6x3 matrix to work down in the dynamic analysis
 	private double[][] rc; //6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
+	private double[][] r;
+	
+	private List<Double> energyList;
 	
 	
 	public OnlinePlanner(Target[] targets, Robot robot)
@@ -38,17 +41,20 @@ public class OnlinePlanner implements Runnable{
 		this.inertiaTens = robot.getInertiaTens();
 		this.rc = robot.getRc();
 		this.rici = robot.getRici();
+		this.r = robot.getR();
 		
 		this.acceleration = 1.0;
 		this.velocity = 0.2;		
 		
 		this.currPosition = targets[0];
 		
-		int index = 0;
-		System.out.println(" ");
-		Matrix.displayMatrix(inertiaTens.get(index));
-		index++;
-		System.out.println("Inertia tensor fo index " + index);
+		this.energyList = new ArrayList<Double>();
+		
+//		int index = 0;
+//		System.out.println(" ");
+//		Matrix.displayMatrix(inertiaTens.get(index));
+//		index++;
+//		System.out.println("Inertia tensor fo index " + index);
 	}
 	
 	public void run(){
@@ -60,14 +66,17 @@ public class OnlinePlanner implements Runnable{
 		
 		// TODO get current position somehow
 		
-	for( int i = 0; i < targetsLength ; i++)
-	{
+		for( int i = 0; i < targetsLength ; i++){
 		//Line to be removed
 		if(currPosition == targets[i]){
 			System.out.println("Current position is equal to the next target.");
 			continue;
 		}
 		//
+		
+		/*
+		 * need to think of a way to pass this thread the info about the type of path
+		 */
 		
 		Path path = new Path(currPosition, targets[i], t_sample, x_sample);
 		path.setMaxAcc(acceleration);
@@ -84,13 +93,15 @@ public class OnlinePlanner implements Runnable{
 //			System.out.println(pathTrajectory.timeInstants.get(l));
 //		}
 		
+//		for(int l = 0 ; l < pathTrajectory.points.size(); l++){
+//			Matrix.displayVector(pathTrajectory.points.get(l).getPosition());
+//		}
 		
 		thetaM = new double[6][8][trajectoryLength]; //trajectoryLength without +1 ?? 
 
 		long time1 = System.nanoTime();
 		int error = 0;
-		for(int j = 0; j < trajectoryLength && error == 0; j++)
-		{
+		for(int j = 0; j < trajectoryLength && error == 0; j++){
 			/*
 			 * PART where inverse kinematics is performed
 			 */
@@ -106,6 +117,7 @@ public class OnlinePlanner implements Runnable{
 		ArrayList<int[]> Solutions = new ArrayList<int[]>();
 		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
 		
+		displayThetaM(134);
 //		for(int k=0; k<6 ; k++){
 //			System.out.print((thetaM[k][Solutions.get(0)[0]][0]) + " ");
 //		}
@@ -134,19 +146,23 @@ public class OnlinePlanner implements Runnable{
 		onlineInvDynamics(pathTrajectory, Solutions);
 		long time2 = System.nanoTime();
 		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
+		
+		currPosition = targets[i];
+		}	
 	}
+	
+	public void run(Target newTarget){
 		
 		
 	}
 	
-	
-	private int copyTargets(Target[] targetsTOstore)
+	private int copyTargets(Target[] targetsToStore)
 	{
-		int length = targetsTOstore.length;
+		int length = targetsToStore.length;
 		this.targets = new Target[length];
 		for(int i = 0; i<length; i++)
 		{
-			this.targets[i] = targetsTOstore[i];
+			this.targets[i] = targetsToStore[i];
 		}
 		return length;
 	}
@@ -184,12 +200,14 @@ public class OnlinePlanner implements Runnable{
 			{
 				double theta2 = theta_23[0][j] - Math.PI/2;
 				double theta3 = Math.PI/2 - theta_23[1][j];
-				double[][] theta_456 = solveTheta456(Next_position, theta_1[i], theta2, theta3, point_i ); 
-				
 				if(theta3 < -Math.PI/2)
 				{
 					theta3 += 2*Math.PI; 
 				}
+				
+				double[][] theta_456 = solveTheta456(Next_position, theta_1[i], theta2, theta3, point_i ); 
+				
+				
 				
 				for(int k = 0; k < theta_456[0].length; k++)
 				{
@@ -213,6 +231,9 @@ public class OnlinePlanner implements Runnable{
 		thetaM = this.applyLimitation(thetaM, point_i);
 		
 		if(point_i == 0){displayThetaM( point_i );}
+		if(point_i == 1){displayThetaM( point_i );}
+		if(point_i == 2){displayThetaM( point_i );}
+		if(point_i == (thetaM[0][0].length - 2)){displayThetaM( point_i );}
 		if(point_i == (thetaM[0][0].length - 1)){displayThetaM( point_i );}
 		//So far thetaM seems correct
 		
@@ -237,9 +258,10 @@ public class OnlinePlanner implements Runnable{
 			
 			for(int i = 0; i < prev_theta.length; i++){prev_theta[i] = thetaM[i][firstConf][0];} //initialization of the vector PREV_THETA
 			
-			Matrix.displayVector(prev_theta);
+//			System.out.println("Theta vector (prev_theta) : ");
+//			Matrix.displayVector(prev_theta);
 			
-			for(int i = 1 ; i < N; i++) //i should start from 1
+			for(int i = 1 ; i < N; i++) //i should start from 1----- i from 1 to 134
 			{
 				//MAIN LOOP where the dynamic analysis is performed
 				int index = solution[i]; //there was a +1 - WHY?
@@ -248,11 +270,18 @@ public class OnlinePlanner implements Runnable{
 				double[] dtheta = new double[6];
 				double[] ddtheta = new double[6];
 				
+//				if(i == 134){
+//					System.out.println("Theta vector for i=" + i + ": ");
+//					Matrix.displayVector(theta);
+//				}
+				
 				
 				for(int j = 0; j < 6; j++){ 
 					dtheta[j] = (theta[j] - prev_theta[j])/(trajectory.timeInstants.get(i) - trajectory.timeInstants.get(i-1));
 					ddtheta[j] = (dtheta[j] - prev_dtheta[j])/(trajectory.timeInstants.get(i) - trajectory.timeInstants.get(i-1));
 				}
+				
+				
 					
 //	FROM MATLAB   T_ex=Ti(:,cont7);
 //                f_ex=fi(:,cont7);
@@ -268,21 +297,39 @@ public class OnlinePlanner implements Runnable{
 				
 				for(int k = 0; k < dynamicSol.length; k++){
 					dynSolutionVector[i][k] = dynamicSol[k];
-//					System.out.print(dtheta[k]);
 				}
 				
+				
+				
 				double power = powerCalculation(dynamicSol, dtheta);
+				
 				
 //				System.out.println("");
 //				System.out.println("Power : " + power);
 				
-				energy += power*trajectory.timeInstants.get(i);
+				energy += power*(trajectory.timeInstants.get(i)- trajectory.timeInstants.get(i-1));
 				
 				
 				
+//				if(i == 133){
+//					System.out.println("Theta vector for i=" + i + ": ");
+//					Matrix.displayVector(theta);
+//					System.out.println("dTheta vector for i=" + i + ": ");
+//					Matrix.displayVector(dtheta);
+//					System.out.println("ddTheta vector for i=" + i + ": ");
+//					Matrix.displayVector(ddtheta);
+//					System.out.println("Dynamic solution vector for i=" + i + ": ");
+//					Matrix.displayVector(dynamicSol);
+//					System.out.println("The power consumed for i = " + i + " is : " + power);
+//					System.out.println("The energy consumed for i = " + i + " is : " + energy);
+//					
+//				}
 				
-				prev_theta = theta;
-				prev_dtheta = dtheta;
+				
+				for(int j = 0; j < 6; j++){
+				prev_theta[j] = theta[j];
+				prev_dtheta[j] = dtheta[j];
+				}
 			}
 			
 			/*
@@ -302,6 +349,7 @@ public class OnlinePlanner implements Runnable{
 			}
 		}
 		System.out.println("The chosen solution was the one requiring " + minEnergy + " J. ");
+		this.energyList.add(minEnergy);
 	}
 	
 	private double[] dynamicAnalysis(double[] theta, double[] dtheta, double[] ddtheta, double[] T, double[] f){
@@ -315,8 +363,8 @@ public class OnlinePlanner implements Runnable{
 		
 		//double[] w_1, alpha_1, acc_centerL1, acc_endL1, w, acc_endL, acc_centerL, dw;
 		double[] w_1 = {0,0,0}, alpha_1 = {0,0,0};
-		double[] acc_centerL1;
-		double[] acc_endL1;
+		double[] acc_centerL1 = {0,0,0};
+		double[] acc_endL1 = {0,0,0};
 		double[] z0 = {0,0,1}, g0 = {0,0,-9.81};
 		double[] gi;
 		double[][] w = new double[6][3], alpha = new double[6][3], dw = new double[6][3], acc_endL = new double[6][3];
@@ -334,6 +382,10 @@ public class OnlinePlanner implements Runnable{
 			double[] temp = Matrix.addMatrices(w_1, Matrix.multiplyScalMatr(dtheta[i], z0)); // (w_0 + z0*dtheta(i))
 			w[i] = Matrix.multiplyMatrixVector(rot_i, temp); //R0_1' * (w_0 + z0*dtheta(i))
 			
+			//FORMULA LIKE IN MATLAB
+			w[i] = Matrix.addMatrices(Matrix.multiplyMatrixVector(rot_i, w_1), Matrix.multiplyScalMatr(dtheta[i], z0));
+			//
+			
 			double[] temp1 = Matrix.crossProduct(w[i], Matrix.multiplyScalMatr(dtheta[i], z0));
 			
 			for(int j = 0; j < 3; j++)
@@ -344,19 +396,44 @@ public class OnlinePlanner implements Runnable{
 			}
 			alpha[i] = Matrix.multiplyMatrixVector(rot_i, alpha[i]);  
 			
+			//FORMULA LIKE IN MATLAB
+			alpha[i] = Matrix.addMatrices(Matrix.multiplyMatrixVector(rot_i, alpha_1), Matrix.addMatrices(temp1, Matrix.multiplyScalMatr(ddtheta[i], z0)));
+			//
+			
+//			
+//			ae(:,i)=((rot_i')*ae_1)+cross(dw(:,i),r(:,i))+cross(w(:,i),c1_2);
+//			ac(:,i)=((rot_i)'*ae_1)+cross(dw(:,i),rc(:,i))+cross(w(:,i),c1_1); 
+			
+			double[] c11 = Matrix.crossProduct(w[i], rc[i]);
+			double[] c12 = Matrix.crossProduct(w[i], r[i]);
+			
+			//THESE FORMULAS ARE THE SAME AS MATLAB
+			
+			acc_centerL[i] = Matrix.multiplyMatrixVector(rot_i, acc_endL1);
+			double[] temp3 = Matrix.addMatrices(Matrix.crossProduct(dw[i], rc[i]), Matrix.crossProduct(w[i], c11));
+			acc_centerL[i] = Matrix.addMatrices(acc_centerL[i], temp3);
+			acc_endL[i] = Matrix.multiplyMatrixVector(rot_i, acc_endL1);
+			double[] temp4 = Matrix.addMatrices(Matrix.crossProduct(dw[i], r[i]), Matrix.crossProduct(w[i], c12));
+			acc_endL[i] = Matrix.addMatrices(acc_endL[i], temp4);
 			
 			
 			
 			/*
 			 * Update the values for next iteration
 			 */
-		
-			alpha_1 = alpha[i];
-			w_1 = w[i];
-			dw_1 = dw[i];
-			acc_endL1 = acc_endL[i];
-			acc_centerL1 = acc_centerL[i];
+			for(int j = 0; j < 3; j++){
+			alpha_1[j] = alpha[i][j];
+			w_1[j] = w[i][j];
+			dw_1[j] = dw[i][j];
+			acc_endL1[j] = acc_endL[i][j];
+			acc_centerL1[j] = acc_centerL[i][j];
+			}
 		}
+		
+		
+		
+		
+		
 		
 		//Backward recursion
 		
@@ -375,7 +452,6 @@ public class OnlinePlanner implements Runnable{
 		double[] torque_i = T;//is the external torque applied at the end effector. It will be used to calculate the next torque in NE method.
 		double[] torque_next = new double[T.length];
 		
-		//double[][] inertia_i;
 		double[] temp1, temp2, temp3, temp4;
 		
 		for(int i = 5; i >= 0 ; i--) //in matlab the loop is 6:1
@@ -396,10 +472,9 @@ public class OnlinePlanner implements Runnable{
 			}
 			force_next = Matrix.addMatrices(force_next, Matrix.multiplyMatrixVector(rot_i, force_i));
 			
-			//intertia_i = inerti
 			
 			temp1 = Matrix.crossProduct(Matrix.multiplyMatrixVector(rot_i, force_i), rici[i]);
-			temp2 = Matrix.crossProduct(force_i,rc[i]);
+			temp2 = Matrix.crossProduct(force_next,rc[i]);
 			temp3 = Matrix.crossProduct(w[i], Matrix.multiplyMatrixVector(inertiaTens.get(i), w[i]));
 			temp4 = Matrix.multiplyMatrixVector(inertiaTens.get(i), alpha[i]);
 			torque_next = Matrix.multiplyMatrixVector(rot_i, torque_i);
@@ -412,6 +487,12 @@ public class OnlinePlanner implements Runnable{
 			//Trr(i)=Tr(:,i)'*[0;0;1];
 			//This calculation (from MATLAB) basically extrapulates only the third element of the 1x3 vector
 			dynamic_solution[i] = torque_next[2];
+			
+			//UPDATE of Torque and Force
+			for(int j = 0; j < force_i.length; j++){
+				force_i[j] = force_next[j];
+				torque_i[j] = torque_next[j];
+			}
 			
 		}
 		
@@ -574,6 +655,9 @@ public class OnlinePlanner implements Runnable{
 		for(int i = 0; i < theta_5.length ; i++)
 		{
 			if(-0.0001 < theta_5[i] && theta_5[i] < 0.0001){
+				
+				System.out.println("There is a Singularity in : " + point_i);
+				
 				//theta_5 is 0 and we're in a singularity case
 				
 				if(point_i == 0) {
@@ -728,7 +812,7 @@ public class OnlinePlanner implements Runnable{
 		 * exceed the joints limitations. The reason is because the path could be too fast for
 		 * the robot, and in that case the sequence of configuration chosen has to be discarded.
 		 */
-		int N = ThetaM[0][0].length; //136
+		int N = ThetaM[0][0].length; //135
 		int error = 0;
 		
 		
@@ -757,7 +841,7 @@ public class OnlinePlanner implements Runnable{
 			//if the configuration checked was OK and with no problems then we can add it
 			//to the solution vector.
 				currentSolution[pointi] = currentConfig;
-				if (pointi < N-2 )//N-2 or N-1?? pointi assumes values 0:135=N-1
+				if (pointi < N-1 )//N-2 or N-1?? pointi assumes values 0:134=N-1
 				{
 					configIteration(ThetaM, pointi+1, currentConfig, trajectoryTimes, currentSolution, solutions);
 				}
@@ -783,7 +867,7 @@ public class OnlinePlanner implements Runnable{
 	private int checkConfiguration(int current_config, int prev_config, int point_i, double[][][] ThetaM, ArrayList<Double> trajectoryTimes){
 		int error = 0;
 		//point_i will be for sure >= 1
-		double dTime = trajectoryTimes.get(point_i) - trajectoryTimes.get(point_i -1);
+		double dTime = trajectoryTimes.get(point_i) - trajectoryTimes.get(point_i - 1);
 //		double dTime = 0.01;
 		double[] w_max = {200.0, 200.0, 260.0, 360, 360, 450};
 		double[] Th_max = new double[w_max.length];
@@ -806,13 +890,17 @@ public class OnlinePlanner implements Runnable{
 		
 			if((j == 3 || j == 5) && (delta_joint > Th_assump[j]))
 			{
-				double delta_joint4p = Math.abs(ThetaM[j][current_config][point_i] + 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
-				double delta_joint4m = Math.abs(ThetaM[j][current_config][point_i] - 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
+				if(j == 5){
+					System.out.println("theta 6 exceeds its limits in i = " + point_i);
+				}
+				
+				double delta_jointp = Math.abs(ThetaM[j][current_config][point_i] + 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
+				double delta_jointm = Math.abs(ThetaM[j][current_config][point_i] - 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
 			
-				if(delta_joint4p < Th_assump[j]) { ThetaM[j][current_config][point_i] += 2*Math.PI; }
+				if(delta_jointp < Th_assump[j]) { ThetaM[j][current_config][point_i] += 2*Math.PI; }
 				else
 				{
-					if(delta_joint4m < Th_assump[j]){ ThetaM[j][current_config][point_i] -= 2*Math.PI;}
+					if(delta_jointm < Th_assump[j]){ ThetaM[j][current_config][point_i] -= 2*Math.PI;}
 					else
 					{
 						return error = 1;
@@ -843,4 +931,19 @@ public class OnlinePlanner implements Runnable{
 		System.out.println(" ");
 	}
 	
+	public double[][][] getThetaM(){
+		return this.thetaM;
+	}
+	
+	public List<Double> getEnergyList(){
+		return this.energyList;
+	}
+	
+	public void setAcceleration(double acceleration){
+		this.acceleration = acceleration;
+	}
+	
+	public void setVelocity(double velocity){
+		this.velocity = velocity;
+	}
 }

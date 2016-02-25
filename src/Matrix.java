@@ -125,21 +125,24 @@ public class Matrix {
 	}
 	
 	public static double[][] multiplyScalMatr(double scalar, double[][] m){
-
+		double[][] result = new double[m.length][m[0].length];
+		
 		for(int i = 0; i < m.length; i++)
 			for(int j = 0; j < m[0].length; j++)
-				m[i][j] = scalar*m[i][j];
+				result[i][j] = scalar*m[i][j];
 
-		return m;
+		return result;
 
 	}
 
 	public static double[] multiplyScalMatr(double scalar, double[] m){
-
+		
+		double[] result = new double[m.length];
+		
 		for(int i = 0; i < m.length; i++)
-				m[i] = scalar*m[i];
+				result[i] = scalar*m[i];
 
-		return m;
+		return result;
 
 	}
 	
@@ -191,7 +194,7 @@ public class Matrix {
 		{
 			result[0] = A[1]*B[2] - A[2]*B[1];
 			result[1] = A[2]*B[0] - A[0]*B[2];
-			result[2] = A[1]*B[2] - A[2]*B[1];
+			result[2] = A[0]*B[1] - A[1]*B[0];
 			
 		}
 		return result;	
@@ -230,7 +233,7 @@ public class Matrix {
 	}
 	
 	public static void displayVector(double[] matrix){
-		System.out.println(" ");
+//		System.out.println(" ");
 		for(int i = 0; i < matrix.length; i++){
 			System.out.print(matrix[i] + " ");
 		}
