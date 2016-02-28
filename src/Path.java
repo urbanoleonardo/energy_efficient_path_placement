@@ -1,4 +1,8 @@
 import com.sun.javafx.geom.Quat4f;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.vecmath.Quat4d;
 
 public class Path {
 /*
@@ -44,10 +48,10 @@ public class Path {
 		 * It returns a vector of Target with initial and final position
 		 */
 		
-		Target[] PathPositions = new Target[2];
-		PathPositions[0] = this.initialPosition;
-		PathPositions[1] = this.finalPosition;
-		return PathPositions;
+		Target[] pathPositions = new Target[2];
+		pathPositions[0] = this.initialPosition;
+		pathPositions[1] = this.finalPosition;
+		return pathPositions;
 	}
 	
 	public Trajectory getTrajectory(){
@@ -156,6 +160,12 @@ public class Path {
 		{
 			++N;
 			
+			//
+			Quat4d q = new Quat4d();
+//			 q.interpolate(arg0, arg1, arg2);
+			//
+			
+			
 			if(time > accTime)
 			{
 				acc_phase = false;
@@ -233,11 +243,78 @@ public class Path {
 	
 	//PRIVATE methods
 	
-	public static Quat4f eulerToQuaternion( float eulerX, float eulerY, float eulerZ ){
-		Quat4f q = new Quat4f();
+	public static Quat4d eulerToQuaternion( float eulerX, float eulerY, float eulerZ ){
+		/*
+		 * X -> PSI
+		 * y -> THETA
+		 * Z -> PHI
+		 */
 		
+		double c1 = Math.cos(eulerX/2.0);
+		double s1 = Math.sin(eulerX/2.0);
+		double c2 = Math.cos(eulerY/2.0);
+		double s2 = Math.sin(eulerY/2.0);
+		double c3 = Math.cos(eulerZ/2.0);
+		double s3 = Math.sin(eulerZ/2.0);
+		
+		Quat4d q = new Quat4d((c3*c2*c1 + s3*s2*s1), (s3*c2*c1 - c3*s2*s1) , (c3*s2*c1 + s3*c2*s1) , (c3*c2*s1 - s3*s2*c1));
 		
 		
 		return q;
+	}
+	
+	public static List<double[]> rotm2eul (double[][] matrix){
+		ArrayList<double[]> angles = new ArrayList<double[]>();
+		
+		//Copy the matrix elements to make formulas clear
+		double r11 = matrix[0][0];
+		double r12 = matrix[0][1];
+		double r13 = matrix[0][2];
+		double r21 = matrix[1][0];
+		double r22 = matrix[1][1];
+		double r23 = matrix[1][2];
+		double r31 = matrix[2][0];
+		double r32 = matrix[2][1];
+		double r33 = matrix[2][2];
+		//-----------------------------------
+		
+		if( Math.abs(r31) < 0.99999 || Math.abs(r31) > 1.00001){ //R31 is NOT +1 or -1
+			double[] angles1 = new double[3];
+			double[] angles2 = new double[3];
+			
+			angles1[1] = - Math.asin(r31); //THETA 1 
+			angles2[1] = Math.PI - angles1[0]; // THETA 2
+			
+			angles1[0] = Math.atan2(r32/Math.cos(angles1[0]), r33/Math.cos(angles1[0])); //PSI 1
+			angles2[0] = Math.atan2(r32/Math.cos(angles2[0]), r33/Math.cos(angles2[0])); //PSI 2
+			
+			angles1[2] = Math.atan2(r21/Math.cos(angles1[0]), r11/Math.cos(angles1[0])); //PHI 1
+			angles2[2] = Math.atan2(r21/Math.cos(angles2[0]), r11/Math.cos(angles2[0])); //PHI 2
+			
+			angles.add(angles1);
+			angles.add(angles2);
+		} else{
+			double[] angles1 = new double[3]; //In this case there will be only one solution
+			
+			angles1[2] = 0.0;
+
+			if(0.99999 < r31 && r31 < 1.00001){ //R31 = 1
+				angles1[1] = -Math.PI/2.0;
+				
+				angles1[0] = - angles1[2] + Math.atan2(-r12, -r13);
+				
+			}else{ //R31 = -1
+				angles1[1] = Math.PI/2.0;
+				
+				angles1[0] = angles1[2] + Math.atan2(r12, r13);
+			}
+			
+			angles.add(angles1);
+		}
+		
+		
+		
+		
+		return angles;
 	}
 }

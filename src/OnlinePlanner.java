@@ -153,8 +153,21 @@ public class OnlinePlanner implements Runnable{
 	}
 	
 	public void run(Target newTarget){
+		targets = new Target[1];
+		targetsLength = 1;
+		targets[0] = newTarget;
+		this.run();
 		
+	}
+	
+	public void run(Target target1,Target target2 ){
+		targets = new Target[2];
+		targetsLength = 2;
+		currPosition = target1;
+		targets[0] = target1;
+		targets[1] = target2;
 		
+		this.run();
 	}
 	
 	private int copyTargets(Target[] targetsToStore)
@@ -231,11 +244,11 @@ public class OnlinePlanner implements Runnable{
 		//CHECK limitation
 		thetaM = this.applyLimitation(thetaM, point_i);
 		
-		if(point_i == 0){displayThetaM( point_i );}
-		if(point_i == 1){displayThetaM( point_i );}
-		if(point_i == 2){displayThetaM( point_i );}
-		if(point_i == (thetaM[0][0].length - 2)){displayThetaM( point_i );}
-		if(point_i == (thetaM[0][0].length - 1)){displayThetaM( point_i );}
+//		if(point_i == 0){displayThetaM( point_i );}
+//		if(point_i == 1){displayThetaM( point_i );}
+//		if(point_i == 2){displayThetaM( point_i );}
+//		if(point_i == (thetaM[0][0].length - 2)){displayThetaM( point_i );}
+//		if(point_i == (thetaM[0][0].length - 1)){displayThetaM( point_i );}
 		//So far thetaM seems correct
 		
  		return 0;
@@ -416,6 +429,18 @@ public class OnlinePlanner implements Runnable{
 			acc_endL[i] = Matrix.multiplyMatrixVector(rot_i, acc_endL1);
 			double[] temp4 = Matrix.addMatrices(Matrix.crossProduct(dw[i], r[i]), Matrix.crossProduct(w[i], c12));
 			acc_endL[i] = Matrix.addMatrices(acc_endL[i], temp4);
+		
+			
+			//FORMULAS AS ON THE BOOK
+			/*
+			    acc_endL[i] = Matrix.multiplyMatrixVector(rot_i, acc_endL1);
+				double[] temp4 = Matrix.addMatrices(Matrix.crossProduct(dw[i], r[i]), Matrix.crossProduct(w[i], c12));
+				acc_endL[i] = Matrix.addMatrices(acc_endL[i], temp4);
+			 
+				//MAYBE in this formula RC[i] has to be changed to rici[i]
+			 	acc_centerL[i] = Matrix.addMatrices(Matrix.addMatrices(acc_endL[i], Matrix.crossProduct(dw[i], rici[i])), Matrix.crossProduct(w[i], Matrix.crossProduct(w[i], rici[i])));
+			 */
+			 
 			
 			
 			
@@ -891,9 +916,9 @@ public class OnlinePlanner implements Runnable{
 		
 			if((j == 3 || j == 5) && (delta_joint > Th_assump[j]))
 			{
-				if(j == 5){
-					System.out.println("theta 6 exceeds its limits in i = " + point_i);
-				}
+//				if(j == 5){
+//					System.out.println("theta 6 exceeds its limits in i = " + point_i);
+//				}
 				
 				double delta_jointp = Math.abs(ThetaM[j][current_config][point_i] + 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
 				double delta_jointm = Math.abs(ThetaM[j][current_config][point_i] - 2*Math.PI - ThetaM[j][prev_config][point_i-1]);
