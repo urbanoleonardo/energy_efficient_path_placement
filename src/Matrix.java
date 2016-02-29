@@ -300,4 +300,16 @@ public class Matrix {
 		
 	}
 	
+	public static boolean equals(double[][] A, double[][] B){
+		
+		for(int i = 0; i < A.length; i++){
+			for(int j = 0; j < A[0].length; j++){
+				if(A[i][j] != B[i][j]){
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
 }
