@@ -24,19 +24,37 @@ public class Path {
 	private double maxVel; //these two parameters MAYBE have to belong to the robot
 	private double maxAcc;
 	
+	private boolean slerpOn;
+	
 	//Different constructors depending on how many parameters are specified
+	
+	public Path(){
+		this.slerpOn = false;
+	}
 	
 	public Path(Target initialPosition, Target finalPosition, double tSample, double xSample){
 		this.initialPosition = initialPosition;
 		this.finalPosition = finalPosition;
 		this.tSample = tSample;
 		this.xSample = xSample;
+		
+		if(Matrix.equals(this.initialPosition.getRotation(), this.finalPosition.getRotation())){
+			this.slerpOn = false;
+		} else{
+			this.slerpOn = true;
+		}
 	}
 	
 	public Path(Target initialPosition, Target finalPosition)
 	{
 		this.initialPosition = initialPosition;
 		this.finalPosition = finalPosition;
+		
+		if(Matrix.equals(this.initialPosition.getRotation(), this.finalPosition.getRotation())){
+			this.slerpOn = false;
+		} else{
+			this.slerpOn = true;
+		}
 	}
 	//END part of constructor
 	
@@ -112,82 +130,82 @@ public class Path {
 		//System.out.println("Distance : " + distance + " and acceleration time : " + acc_time);
 		int N = 0;
 		
-		double tot_time = 0;
+		double totTime = 0;
 		double time = 0;
-		double max_vel;
-		double acc_distance;
+		double maxVel;
+		double accDistance;
 		
-		boolean acc_phase;
-		boolean dec_phase;
+		boolean accPhase;
+		boolean decPhase;
 		
 		double new_position;
+		
+		
+ 
+		Quat4d q0 = this.rotmToQuat(this.initialPosition.getRotation());
+		Quat4d q1 = this.rotmToQuat(this.finalPosition.getRotation());
 		
 //		interpolatedPath.points.add(this.initialPosition);
 //		interpolatedPath.timeInstants.add(time);
 		
 		if(((2*accTime)*this.maxVel/2.0) < distance)
 		{
-			tot_time = (distance - (2*accTime)*this.maxVel/2.0)/this.maxVel + 2*accTime;
-			max_vel = this.maxVel;
+			totTime = (distance - (2*accTime)*this.maxVel/2.0)/this.maxVel + 2*accTime;
+			maxVel = this.maxVel;
 			System.out.println("The maximum velocity is: " + this.maxVel + " m/s");
 		}
 		else
 		{
-			max_vel = Math.sqrt(distance*2*this.maxVel/(2*accTime));
-			tot_time = distance*2/max_vel;
-			accTime = accTime*max_vel/this.maxVel;
-			System.out.println("The velocity profile is triangular, so the new maximum velocity is: " + max_vel + " m/s");
+			maxVel = Math.sqrt(distance*2*this.maxVel/(2*accTime));
+			totTime = distance*2/maxVel;
+			accTime = accTime*maxVel/this.maxVel;
+			System.out.println("The velocity profile is triangular, so the new maximum velocity is: " + maxVel + " m/s");
 		}
 		
 		//log for debugging
-		System.out.println("Distance: " + distance + " total time : " + tot_time + " and maximum velocity : " + max_vel);
+		System.out.println("Distance: " + distance + " total time : " + totTime + " and maximum velocity : " + maxVel);
 		//System.out.println("Acceleration time: " + acc_time);
 		
-		acc_distance = max_vel*accTime/2;
+		accDistance = maxVel*accTime/2;
 		
 		if(accTime > 0)
 		{
-			acc_phase = true;
+			accPhase = true;
 		}
 		else
 		{
-			acc_phase = false;
+			accPhase = false;
 		}
 		
-		dec_phase = false;
+		decPhase = false;
 		
-		while(time <= tot_time)
+		while(time <= totTime)
 		{
 			++N;
-			
-			//
-			Quat4d q = new Quat4d();
-//			 q.interpolate(arg0, arg1, arg2);
-			//
 			
 			
 			if(time > accTime)
 			{
-				acc_phase = false;
+				accPhase = false;
 			}
-			if(time > (tot_time - accTime))
+			if(time > (totTime - accTime))
 			{
-				dec_phase = true;
+				decPhase = true;
 			}
 			
-			if(acc_phase)
+			if(accPhase)
 			{
-				new_position = time*max_vel/accTime*time/2;
+				new_position = time*maxVel/accTime*time/2;
 			}
 			else
 			{
-				if(dec_phase)
+				if(decPhase)
 				{
-					new_position = distance - (tot_time - time)*(tot_time - time)*max_vel/(2*accTime);
+					new_position = distance - (totTime - time)*(totTime - time)*maxVel/(2*accTime);
 				}
 				else
 				{
-					new_position = acc_distance + (max_vel*(time - accTime));
+					new_position = accDistance + (maxVel*(time - accTime));
 				}
 			}
 			
@@ -197,8 +215,29 @@ public class Path {
 			position_vector = Matrix.multiplyScalMatr(new_position/distance, position_vector);
 			position_vector = Matrix.addMatrices(position_vector, this.initialPosition.getPosition());
 			
+			//
+			double[][] rotm;
+			
+			if(slerpOn){
+			
+				Quat4d qm = this.slerp(q0, q1, time/totTime);
+				rotm = this.quatToRotm(qm);
+				
+//				for(int i = 0; i < 3; i++){
+//					for(int j = 0; j < 3 ; j++){
+//						rotm[i][j] = 
+//					}
+//				}
+				
+			//this.quatToRotm(q0);
+			}else{
+				 rotm = this.initialPosition.getRotation();
+			}
+			//
+			
+			
 			//for the moment I'm not changing the rotation matrix
-			Target newPointInTrajectory = new Target(position_vector, this.initialPosition.getRotation());
+			Target newPointInTrajectory = new Target(position_vector, rotm);
 			
 			//add the new target to the trajectory
 			interpolatedPath.points.add(newPointInTrajectory);
@@ -212,7 +251,7 @@ public class Path {
 			
 		}//end of the WHILE loop
 		
-		time = tot_time;
+		time = totTime;
 		
 		interpolatedPath.points.add(this.finalPosition);
 		interpolatedPath.timeInstants.add(time);
@@ -243,7 +282,7 @@ public class Path {
 	
 	//PRIVATE methods
 	
-	public static Quat4d eulerToQuaternion( float eulerX, float eulerY, float eulerZ ){
+	private Quat4d eulerToQuaternion( float eulerX, float eulerY, float eulerZ ){
 		/*
 		 * X -> PSI
 		 * y -> THETA
@@ -263,7 +302,7 @@ public class Path {
 		return q;
 	}
 	
-	public static List<double[]> rotm2eul (double[][] matrix){
+	private List<double[]> rotm2eul (double[][] matrix){
 		ArrayList<double[]> angles = new ArrayList<double[]>();
 		
 		//Copy the matrix elements to make formulas clear
@@ -310,11 +349,124 @@ public class Path {
 			}
 			
 			angles.add(angles1);
-		}
-		
-		
-		
-		
+		}	
 		return angles;
 	}
+	
+	private Quat4d rotmToQuat (double[][] matrix){
+		
+		double m00 = matrix[0][0];
+		double m01 = matrix[0][1];
+		double m02 = matrix[0][2];
+		double m10 = matrix[1][0];
+		double m11 = matrix[1][1];
+		double m12 = matrix[1][2];
+		double m20 = matrix[2][0];
+		double m21 = matrix[2][1];
+		double m22 = matrix[2][2];
+		
+		double qx = 0;
+		double qy = 0;
+		double qz = 0;
+		double qw = 0;
+		
+		double tr = m00 + m11 + m22;
+		 
+		if (tr > 0) { 
+			double S = Math.sqrt(tr+1.0) * 2; // S=4*qw 
+			qw = 0.25 * S;
+			qx = (m21 - m12) / S;
+			qy = (m02 - m20) / S; 
+			qz = (m10 - m01) / S; 
+		} else if ((m00 > m11)&(m00 > m22)) { 
+			double S = Math.sqrt(1.0 + m00 - m11 - m22) * 2; // S=4*qx 
+			qw = (m21 - m12) / S;
+			qx = 0.25 * S;
+			qy = (m01 + m10) / S; 
+			qz = (m02 + m20) / S; 
+		} else if (m11 > m22) { 
+			double S = Math.sqrt(1.0 + m11 - m00 - m22) * 2; // S=4*qy
+			qw = (m02 - m20) / S;
+			qx = (m01 + m10) / S; 
+			qy = 0.25 * S;
+			qz = (m12 + m21) / S; 
+		} else { 
+			double S = Math.sqrt(1.0 + m22 - m00 - m11) * 2; // S=4*qz
+			qw = (m10 - m01) / S;
+			qx = (m02 + m20) / S;
+			qy = (m12 + m21) / S;
+			qz = 0.25 * S;
+		}
+		 
+		return new Quat4d(qx,qy,qz, qw);
+		
+	}
+	
+	private double[][] quatToRotm (Quat4d q){
+		double[][] rotm = new double[3][3];
+		
+		    double sqw = q.w*q.w;
+		    double sqx = q.x*q.x;
+		    double sqy = q.y*q.y;
+		    double sqz = q.z*q.z;
+
+		    // invs (inverse square length) is only required if quaternion is not already normalised
+		    double invs = 1 / (sqx + sqy + sqz + sqw);
+		    rotm[0][0] = ( sqx - sqy - sqz + sqw)*invs ; // since sqw + sqx + sqy + sqz =1/invs*invs
+		    rotm[1][1] = (-sqx + sqy - sqz + sqw)*invs ;
+		    rotm[2][2] = (-sqx - sqy + sqz + sqw)*invs ;
+		    
+		    double tmp1 = q.x*q.y;
+		    double tmp2 = q.z*q.w;
+		    rotm[1][0] = 2.0 * (tmp1 + tmp2)*invs ;
+		    rotm[0][1] = 2.0 * (tmp1 - tmp2)*invs ;
+		    
+		    tmp1 = q.x*q.z;
+		    tmp2 = q.y*q.w;
+		    rotm[2][0] = 2.0 * (tmp1 - tmp2)*invs ;
+		    rotm[0][2] = 2.0 * (tmp1 + tmp2)*invs ;
+		    tmp1 = q.y*q.z;
+		    tmp2 = q.x*q.w;
+		    rotm[2][1] = 2.0 * (tmp1 + tmp2)*invs ;
+		    rotm[1][2] = 2.0 * (tmp1 - tmp2)*invs ;      
+		
+		
+		return rotm;
+	}
+	
+	private Quat4d slerp(Quat4d qa, Quat4d qb, double t) {
+	    // quaternion to return
+		Quat4d qm = new Quat4d();
+	    // Calculate angle between them.
+	    double cosHalfTheta = qa.w * qb.w + qa.x * qb.x + qa.y * qb.y + qa.z * qb.z;
+	    // if qa=qb or qa=-qb then theta = 0 and we can return qa
+	    if (Math.abs(cosHalfTheta) >= 1.0){
+	        qm.w = qa.w; 
+	        qm.x = qa.x; 
+	        qm.y = qa.y; 
+	        qm.z = qa.z;
+	        return qm;
+	    }
+	    // Calculate temporary values.
+	    double halfTheta = Math.acos(cosHalfTheta);
+	    double sinHalfTheta = Math.sqrt(1.0 - cosHalfTheta*cosHalfTheta);
+	    // if theta = 180 degrees then result is not fully defined
+	    // we could rotate around any axis normal to qa or qb
+	    if (Math.abs(sinHalfTheta) < 0.001){ // fabs is floating point absolute
+	        qm.w = (qa.w * 0.5 + qb.w * 0.5);
+	        qm.x = (qa.x * 0.5 + qb.x * 0.5);
+	        qm.y = (qa.y * 0.5 + qb.y * 0.5);
+	        qm.z = (qa.z * 0.5 + qb.z * 0.5);
+	        return qm;
+	    }
+	    double ratioA = Math.sin((1 - t) * halfTheta) / sinHalfTheta;
+	    double ratioB = Math.sin(t * halfTheta) / sinHalfTheta; 
+	    //calculate Quaternion.
+	    qm.w = (qa.w * ratioA + qb.w * ratioB);
+	    qm.x = (qa.x * ratioA + qb.x * ratioB);
+	    qm.y = (qa.y * ratioA + qb.y * ratioB);
+	    qm.z = (qa.z * ratioA + qb.z * ratioB);
+	    return qm;
+	}
+	
 }
