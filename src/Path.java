@@ -14,7 +14,7 @@ public class Path {
  */
 	private Target initialPosition;
 	private Target finalPosition;
-	private Trajectory interpolatedPath; //the Trajectory will have also the initial and 
+	protected Trajectory interpolatedPath; //the Trajectory will have also the initial and 
 										  // final position within of course.
 										  	
 	
@@ -59,6 +59,14 @@ public class Path {
 	//END part of constructor
 	
 	//Part of GET methods
+	public Target getInitialPosition(){
+		return this.initialPosition;
+	}
+	
+	public Target getFinalPosition(){
+		return this.finalPosition;
+	}
+	
 	public Target[] getPathPositions()
 	{
 		
@@ -83,6 +91,19 @@ public class Path {
 	public double getSpaceSample(){
 		return this.xSample;
 	}
+	
+	public double getMaxAcc(){
+		return this.maxAcc;
+	}
+	
+	public double getMaxVel(){
+		return this.maxVel;
+	}
+	
+	public boolean isSlerpOn() {
+		return slerpOn;
+	}
+
 	//END part of the GET methods
 	
 	
@@ -95,6 +116,10 @@ public class Path {
 		this.maxVel = velocity;
 	}
 	
+	public void setSlerpOn(boolean slerpOn) {
+		this.slerpOn = slerpOn;
+	}
+
 	public void setXSample(double x_sample){
 		this.xSample = x_sample;
 	}

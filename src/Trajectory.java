@@ -14,5 +14,11 @@ public class Trajectory {
 	public ArrayList<double[]> extTorques = new ArrayList<double[]>();
 	public ArrayList<double[]> extForces = new ArrayList<double[]>();
 	
+	public void shiftTime(double timeOffset){
+		for(int i = 0 ; i < timeInstants.size(); i++){
+			timeInstants.set(i, (timeInstants.get(i) + timeOffset));
+			
+		}
+	}
 	
 }
