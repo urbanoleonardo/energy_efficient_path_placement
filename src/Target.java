@@ -1,4 +1,6 @@
-
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 public class Target {
 
@@ -164,11 +166,35 @@ public double[][] getInvHomMatrix(){
 
 	public void translateTarget (double[] vector)
 	{
+		
+		BigDecimal[] buffer1 = new BigDecimal[vector.length];
+		BigDecimal[] buffer2 = new BigDecimal[vector.length];
+		BigDecimal[] res = new BigDecimal[vector.length];
+		MathContext mc1 = new MathContext(2, RoundingMode.HALF_DOWN);
+		MathContext mc2 = new MathContext(6, RoundingMode.HALF_DOWN);
+		
+//		for(int i = 0 ; i < this.position.length ; i++)
+//		{
+//			
+//		this.position[i] += vector[i];
+//		this.homMatrix[i][3] += vector[i];
+//		
+//		}
+		
 		for(int i = 0 ; i < this.position.length ; i++)
 		{
-		this.position[i] += vector[i];
-		this.homMatrix[i][3] += vector[i];
+						
+					buffer1[i] = new BigDecimal(vector[i], mc1);				
+					buffer2[i] = new BigDecimal(this.position[i], mc2);
+					
+					res[i] = buffer2[i].add(buffer1[i], mc2);
+						
+						this.position[i] = res[i].doubleValue();
+						this.homMatrix[i][3] = res[i].doubleValue();
+						
 		}
+		
+		
 	}
 	
 	

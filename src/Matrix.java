@@ -300,6 +300,31 @@ public class Matrix {
 		
 	}
 	
+	public static double[][] copyMatrix(double[][] m2){
+		
+		double[][] m1 = new double[m2.length][m2[0].length];
+		
+		for(int i = 0; i < m2.length; i++)
+			for(int j = 0; j < m2[0].length; j++)
+				
+				m1[i][j] = m2[i][j];
+		
+		return m1;
+		
+	}
+	
+	public static double[] copyVector(double[] v2){
+		
+		double[] v1 = new double[v2.length];
+		
+		for(int i = 0; i < v2.length; i++)
+			
+			v1[i] = v2[i];
+		
+		return v1;
+		
+	}
+	
 	public static boolean equals(double[][] A, double[][] B){
 		
 		for(int i = 0; i < A.length; i++){
