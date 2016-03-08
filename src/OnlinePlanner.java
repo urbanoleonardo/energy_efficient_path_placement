@@ -138,7 +138,8 @@ public class OnlinePlanner implements Runnable{
 		if(NumOfSolutions == 0)
 		{
 			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
-			this.energyList.add(0, 0.0);
+//			this.energyList.add(0, 0.0);
+			this.energyList.add(0.0);
 			break;
 		}
 		//Once we have at least a series of configuration to the final target, the inverse dynamics
