@@ -3,19 +3,31 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 public class Target {
+	
+	/*
+	 * It defines the Target object, that it is basically a 4x4 matrix that describes
+	 * position/rotation of a point in the space
+	 */
 
 	private double[][] homMatrix;
+	
 	private double[] position;
+	
 	private double[][] rotation;
 
 
-	public static void main(String[] args){
+	public static void main (String[] args) {
 
 	}
 
 	//Part of CONSTRUCTORS
+	
+	/*
+	 * Constructor setting homMatrix = I, position = {0, 0, 0} and rotation = I
+	 * It basically means position = center of the system and null rotation
+	 */
 
-	public Target(){
+	public Target () {
 
 		homMatrix = new double[4][4];
 		position = new double[3];
@@ -34,55 +46,90 @@ public class Target {
 			}
 	}
 
+	/*
+	 * Constructor that takes in input a 4x4 matrix that is going to become the 4x4 matrix
+	 * representing the target
+	 */
 	public Target(double[][] T){
 
 		homMatrix = new double[4][4];
+		
 		position = new double[3];
+		
 		rotation = new double[3][3];
 
-		if(T.length == 4 && T[0].length == 4){		
-			for(int i = 0; i < T.length; i++)
-				for (int j = 0; j < T[0].length; j++){
+		if (T.length == 4 && T[0].length == 4) {
+			
+			for (int i = 0; i < T.length; i++)
+				
+				for (int j = 0; j < T[0].length; j++) {
+					
 					homMatrix[i][j] = T[i][j];
-					if(i != 3 && j == 3)
+					
+					if (i != 3 && j == 3)
+						
 						position[i] = T[i][j];
-					if(i != 3 && j != 3)
+					
+					if (i != 3 && j != 3)
+						
 						rotation[i][j] = T[i][j];
+					
 				}
-		}else{
+			
+		} else
+			
 			System.out.println("Wrong dimensions. Homogeneus matrix must be 4x4.");
-		}
 
 	}
 
-	public Target(double[] pos, double[][] rot){
+	public Target (double[] pos, double[][] rot) {
 
 		homMatrix = new double[4][4];
+		
 		position = new double[3];
+		
 		rotation = new double[3][3];
 
 		homMatrix = identityMatr();
 
-		if(pos.length == 3){
-			for(int i = 0; i < pos.length; i++){
+		if (pos.length == 3) {
+			
+			for (int i = 0; i < pos.length; i++) {
+				
 				homMatrix[i][3] = pos[i];
+				
 				position[i] = pos[i];
+				
 			}
-		}else{
+			
+		} else {
+			
 			System.out.println("Wrong dimensions. Position vector must be a vector of length = 3.");
+			
 			return;
+			
 		}
 
-		if(rot.length == 3 && rot[0].length == 3){
-			for(int i = 0; i < rot.length; i++)
-				for(int j = 0; j < rot[0].length; j++){
+		if (rot.length == 3 && rot[0].length == 3) {
+			
+			for (int i = 0; i < rot.length; i++)
+				
+				for (int j = 0; j < rot[0].length; j++) {
+					
 					homMatrix[i][j] = rot[i][j];
+					
 					rotation[i][j] = rot[i][j];
+					
 				}
-		}else{
+			
+		} else {
+			
 			System.out.println("Wrong dimensions. Rotation matrix must be 3x3.");
+			
 			return;
+			
 		}
+		
 	}
 
 	//END of CONSTRUCTORS
@@ -90,16 +137,16 @@ public class Target {
 
 	//Part of GET methods
 
-	public double[][] getHomMatrix(){
+	public double[][] getHomMatrix () {
 
 		return homMatrix;
 
 	}
 	
-public double[][] getInvHomMatrix(){
+public double[][] getInvHomMatrix () {
 		
 		/*
-		 * Inverse of an Affine Matrix
+		 * Inverse a matrix using useful property of Affine matrices
 		 */
 		
 		double[][] rotMatrix = new double[3][3];
@@ -108,30 +155,34 @@ public double[][] getInvHomMatrix(){
 		rotMatrix = Matrix.transpose(rotMatrix);
 		
 		double[] posVector = new double[3];
-		for(int i = 0; i < posVector.length; i++){
+		
+		for (int i = 0; i < posVector.length; i++) {
+			
 			posVector[i] = - position[i];
+			
 		}
+		
 		posVector = Matrix.multiplyMatrixVector(rotMatrix, posVector);
 
-		Target result = new Target(posVector,rotMatrix);
+		Target result = new Target (posVector,rotMatrix);
 
 		return result.getHomMatrix();
 
 }
 
-	public double[] getPosition(){
+	public double[] getPosition () {
 
 		return position;
 
 	}
 
-	public double[][] getRotation(){
+	public double[][] getRotation () {
 
 		return rotation;
 
 	}
 	
-	public double[][] getInvRotation(){
+	public double[][] getInvRotation () {
 		
 		/*
 		 * R is orthogonal so its inverse matrix is equal to its transpose matrix
@@ -139,8 +190,10 @@ public double[][] getInvHomMatrix(){
 
 		double[][] INV = new double[3][3];
 
-		for(int i = 0; i < this.getRotation().length; i++)
-			for(int j = 0; j < this.getRotation()[0].length; j++)
+		for (int i = 0; i < this.getRotation().length; i++)
+			
+			for (int j = 0; j < this.getRotation()[0].length; j++)
+				
 				INV[i][j] = this.getRotation()[j][i];
 
 		return INV;
