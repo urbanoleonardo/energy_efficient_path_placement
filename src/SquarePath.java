@@ -69,12 +69,17 @@ public class SquarePath extends Path{
 			tempPath.setMaxVel(super.getMaxVel());
 			Trajectory interpolatedSide = tempPath.interpolate();
 			
-			double time = 0;
+//			double time = 0;
 			if(i != 0){
-				time = interpolatedPath.timeInstants.get(interpolatedPath.timeInstants.size() - 1);
+				double time = interpolatedPath.timeInstants.get(interpolatedPath.timeInstants.size() - 1);
+				
+				interpolatedSide.points.remove(0);
+				interpolatedSide.timeInstants.remove(0);
+				interpolatedSide.shiftTime(time);
+				
 			}
 			
-			interpolatedSide.shiftTime(time);
+			
 			
 			//add the lists of points, times, forces and torques to the complete Trajectory
 			interpolatedPath.points.addAll(interpolatedSide.points);

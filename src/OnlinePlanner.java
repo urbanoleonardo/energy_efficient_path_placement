@@ -11,6 +11,7 @@ public class OnlinePlanner implements Runnable{
 	private Target currPosition;
 	private int targetsLength;
 	private Target[] targets;
+	private Path path = null;
 	private Robot robot;
 	
 	private double[][] linkLength;
@@ -57,100 +58,131 @@ public class OnlinePlanner implements Runnable{
 //		System.out.println("Inertia tensor fo index " + index);
 	}
 	
-	public void run(){
-		System.out.println("The online planner has been started.");
-		
-		//Somebody has to decide them
-		double x_sample = 1E-3;
-		double t_sample = 0.01;
-		
-		// TODO get current position somehow
-		
-		for( int i = 0; i < targetsLength ; i++){
-		//Line to be removed
-		if(currPosition == targets[i]){
-			System.out.println("Current position is equal to the next target.");
-			continue;
-		}
-		//
-		
-		/*
-		 * need to think of a way to pass this thread the info about the type of path
-		 */
-		
-		Path path = new Path(currPosition, targets[i], t_sample, x_sample);
-		path.setMaxAcc(acceleration);
-		path.setMaxVel(velocity);
-		path.interpolate();
-		
-		//Trajectory is private so I can interrogate it directly
-		Trajectory pathTrajectory = path.getTrajectory();
-		int trajectoryLength = pathTrajectory.points.size();
-
-		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
-		
-//		for(int l = 0 ; l < pathTrajectory.timeInstants.size(); l++){
-//			System.out.println(pathTrajectory.timeInstants.get(l));
+	
+	
+//	public void run(){
+//		System.out.println("The online planner has been started.");
+//		
+//		//Somebody has to decide them
+//		double x_sample = 1E-3;
+//		double t_sample = 0.01;
+//		
+//		// TODO get current position somehow
+//		
+//		for( int i = 0; i < targetsLength ; i++){
+//		//Line to be removed
+//		if(currPosition == targets[i]){
+//			System.out.println("Current position is equal to the next target.");
+//			continue;
 //		}
-		
-//		for(int l = 0 ; l < pathTrajectory.points.size(); l++){
-//			Matrix.displayVector(pathTrajectory.points.get(l).getPosition());
+//		//
+//		
+//		/*
+//		 * need to think of a way to pass this thread the info about the type of path
+//		 */
+//		
+//		Path path = new Path(currPosition, targets[i], t_sample, x_sample);
+//		path.setMaxAcc(acceleration);
+//		path.setMaxVel(velocity);
+//		path.interpolate();
+//		
+//		//Trajectory is private so I can't interrogate it directly
+//		Trajectory pathTrajectory = path.getTrajectory();
+//		int trajectoryLength = pathTrajectory.points.size();
+//
+//		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
+//		
+////		for(int l = 0 ; l < pathTrajectory.timeInstants.size(); l++){
+////			System.out.println(pathTrajectory.timeInstants.get(l));
+////		}
+//		
+////		for(int l = 0 ; l < pathTrajectory.points.size(); l++){
+////			Matrix.displayVector(pathTrajectory.points.get(l).getPosition());
+////		}
+//		
+//		thetaM = new double[6][8][trajectoryLength]; //trajectoryLength without +1 ?? 
+//
+//		long time1 = System.nanoTime();
+//		int error = 0;
+//		for(int j = 0; j < trajectoryLength && error == 0; j++){
+//			/*
+//			 * PART where inverse kinematics is performed
+//			 */
+//			
+//			error = onlineInvKinematics(pathTrajectory.points.get(j), j);
+//		
 //		}
-		
-		thetaM = new double[6][8][trajectoryLength]; //trajectoryLength without +1 ?? 
-
-		long time1 = System.nanoTime();
-		int error = 0;
-		for(int j = 0; j < trajectoryLength && error == 0; j++){
-			/*
-			 * PART where inverse kinematics is performed
-			 */
-			
-			error = onlineInvKinematics(pathTrajectory.points.get(j), j);
-		
-		}
-		
-		
-		
-		//Check if the configurations left can be followed by the robot
-		int[] Solution_vector = new int[thetaM[0][0].length];
-		ArrayList<int[]> Solutions = new ArrayList<int[]>();
-		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
-		
-		displayThetaM(134);
-//		for(int k=0; k<6 ; k++){
-//			System.out.print((thetaM[k][Solutions.get(0)[0]][0]) + " ");
+//		
+//		
+//		
+//		//Check if the configurations left can be followed by the robot
+//		int[] Solution_vector = new int[thetaM[0][0].length];
+//		ArrayList<int[]> Solutions = new ArrayList<int[]>();
+//		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
+//		
+//		displayThetaM(134);
+////		for(int k=0; k<6 ; k++){
+////			System.out.print((thetaM[k][Solutions.get(0)[0]][0]) + " ");
+////		}
+////		System.out.println("");
+//		
+////		long time2 = System.nanoTime();
+//		int NumOfSolutions = Solutions.size();
+//		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
+////		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
+//		
+////		//FOR DEBUG
+////		System.out.println("");
+////		for(int j = 0 ; j < Solutions.get(3).length; j++){
+////			System.out.println(Solutions.get(1)[j]);
+////		}
+//		//
+//		
+//		if(NumOfSolutions == 0)
+//		{
+//			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
+////			this.energyList.add(0, 0.0);
+//			this.energyList.add(0.0);
+//			break;
 //		}
-//		System.out.println("");
-		
+//		//Once we have at least a series of configuration to the final target, the inverse dynamics
+//		//can be calculated.
+//		
+//		onlineInvDynamics(pathTrajectory, Solutions);
 //		long time2 = System.nanoTime();
-		int NumOfSolutions = Solutions.size();
-		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
-//		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
-		
-//		//FOR DEBUG
-//		System.out.println("");
-//		for(int j = 0 ; j < Solutions.get(3).length; j++){
-//			System.out.println(Solutions.get(1)[j]);
-//		}
-		//
-		
-		if(NumOfSolutions == 0)
-		{
-			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
-//			this.energyList.add(0, 0.0);
-			this.energyList.add(0.0);
-			break;
+//		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
+//		
+//		currPosition = targets[i];
+//		}	
+//	}
+	
+	
+	public void run(){
+		if(this.path == null){
+			double x_sample = 1E-3;
+			double t_sample = 0.01;
+			boolean canSolve = true;
+			
+			for( int i = 0; i < targetsLength && canSolve; i++){
+				//Line to be removed
+				if(currPosition == targets[i]){
+					System.out.println("Current position is equal to the next target.");
+					continue;
+				}
+				
+			this.path = new Path(currPosition, targets[i], t_sample, x_sample);
+			path.setMaxAcc(acceleration);
+			path.setMaxVel(velocity);
+			
+			canSolve = solver(path);
+			currPosition = targets[i];
+			}
+			
+		}else {
+			
+			solver(path);
+			
 		}
-		//Once we have at least a series of configuration to the final target, the inverse dynamics
-		//can be calculated.
-		
-		onlineInvDynamics(pathTrajectory, Solutions);
-		long time2 = System.nanoTime();
-		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
-		
-		currPosition = targets[i];
-		}	
 	}
 	
 	public void run(Target newTarget){
@@ -171,6 +203,11 @@ public class OnlinePlanner implements Runnable{
 		this.run();
 	}
 	
+	public void run(Path path){
+		this.path = path;
+		this.run();
+	}
+	
 	private int copyTargets(Target[] targetsToStore)
 	{
 		int length = targetsToStore.length;
@@ -180,6 +217,77 @@ public class OnlinePlanner implements Runnable{
 			this.targets[i] = targetsToStore[i];
 		}
 		return length;
+	}
+	
+	private boolean solver(Path inputPath){
+
+		Trajectory pathTrajectory = inputPath.interpolate();
+		int trajectoryLength = pathTrajectory.points.size();
+
+		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
+//		System.out.println("Number of points in Ext Torques " + pathTrajectory.extTorques.size());
+//		for(int l = 0 ; l < pathTrajectory.timeInstants.size(); l++){
+//			System.out.println(pathTrajectory.timeInstants.get(l));
+//		}
+		
+//		for(int l = 0 ; l < pathTrajectory.points.size(); l++){
+//			Matrix.displayVector(pathTrajectory.points.get(l).getPosition());
+//		}
+		
+		thetaM = new double[6][8][trajectoryLength];
+
+		long time1 = System.nanoTime();
+		int error = 0;
+		
+		for(int j = 0; j < trajectoryLength && error == 0; j++){
+			/*
+			 * PART where inverse kinematics is performed
+			 */
+			
+			error = onlineInvKinematics(pathTrajectory.points.get(j), j);
+		
+		}
+		
+		
+		
+		//Check if the configurations left can be followed by the robot
+		int[] Solution_vector = new int[thetaM[0][0].length];
+		ArrayList<int[]> Solutions = new ArrayList<int[]>();
+		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
+		
+//		displayThetaM(134);
+//		for(int k=0; k<6 ; k++){
+//			System.out.print((thetaM[k][Solutions.get(0)[0]][0]) + " ");
+//		}
+//		System.out.println("");
+		
+//		long time2 = System.nanoTime();
+		int NumOfSolutions = Solutions.size();
+		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
+//		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
+		
+//		//FOR DEBUG
+//		System.out.println("");
+//		for(int j = 0 ; j < Solutions.get(3).length; j++){
+//			System.out.println(Solutions.get(1)[j]);
+//		}
+		//
+		
+		if(NumOfSolutions == 0)
+		{
+			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
+			this.energyList.add(0.0);
+			return false;
+		}
+		//Once we have at least a series of configuration to the final target, the inverse dynamics
+		//can be calculated.
+		
+		onlineInvDynamics(pathTrajectory, Solutions);
+		long time2 = System.nanoTime();
+		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
+		
+		return true;
+		//currPosition = targets[i];
 	}
 	
 	
@@ -285,9 +393,11 @@ public class OnlinePlanner implements Runnable{
 				double[] dtheta = new double[6];
 				double[] ddtheta = new double[6];
 				
-//				if(i == 134){
+//				if(i == 71){
 //					System.out.println("Theta vector for i=" + i + ": ");
 //					Matrix.displayVector(theta);
+//					System.out.println("Prev_Theta vector for i=" + i + ": ");
+//					Matrix.displayVector(prev_theta);
 //				}
 				
 				
@@ -326,7 +436,7 @@ public class OnlinePlanner implements Runnable{
 				
 				
 				
-//				if(i == 133){
+//				if(i == 70){
 //					System.out.println("Theta vector for i=" + i + ": ");
 //					Matrix.displayVector(theta);
 //					System.out.println("dTheta vector for i=" + i + ": ");
@@ -337,6 +447,7 @@ public class OnlinePlanner implements Runnable{
 //					Matrix.displayVector(dynamicSol);
 //					System.out.println("The power consumed for i = " + i + " is : " + power);
 //					System.out.println("The energy consumed for i = " + i + " is : " + energy);
+//					System.out.println("Time instant i : " + trajectory.timeInstants.get(i) + " and time instant i-1 : " + trajectory.timeInstants.get(i-1));
 //					
 //				}
 				
