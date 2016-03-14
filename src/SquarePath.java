@@ -60,11 +60,11 @@ public class SquarePath extends Path{
 		 * The Parent method interpolate will be called for each couple of points and then merged.
 		 */
 		Trajectory interpolatedPath = new Trajectory();
-		Target[] points = {super.getInitialPosition(), this.vertex1, this.vertex2, super.getFinalPosition(), super.getInitialPosition()};
+		Target[] points = {super.getInitialPosition(), this.vertex1, this.vertex2, this.finalPosition, this.initialPosition};
 		
 		
 		for(int i = 0 ; i < (points.length - 1); i++){
-			Path tempPath = new Path(points[i], points[i+1], super.getTimeSample(), super.getSpaceSample());
+			Path tempPath = new Path(points[i], points[i+1], this.tSample, this.xSample);
 			tempPath.setMaxAcc(super.getMaxAcc());
 			tempPath.setMaxVel(super.getMaxVel());
 			Trajectory interpolatedSide = tempPath.interpolate();
@@ -89,7 +89,7 @@ public class SquarePath extends Path{
 			
 		}
 		
-		super.interpolatedPath = interpolatedPath;
+		this.interpolatedPath = interpolatedPath;
 		return interpolatedPath;
 	}
 	

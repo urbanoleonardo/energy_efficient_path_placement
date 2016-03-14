@@ -12,19 +12,19 @@ public class Path {
  * The "Father" method INTERPOLATE will generate basically a straight line
  * while for other paths like the square one (that will be sons) the method will behave differently 
  */
-	private Target initialPosition;
-	private Target finalPosition;
+	protected Target initialPosition;
+	protected Target finalPosition;
 	protected Trajectory interpolatedPath; //the Trajectory will have also the initial and 
 										  // final position within of course.
 										  	
 	
-	private double tSample; //time resolution for the trajectory
-	private double xSample; //space resolution for the trajectory
+	protected double tSample; //time resolution for the trajectory
+	protected double xSample; //space resolution for the trajectory
 	
-	private double maxVel; //these two parameters MAYBE have to belong to the robot
-	private double maxAcc;
+	protected double maxVel; //these two parameters MAYBE have to belong to the robot
+	protected double maxAcc;
 	
-	private boolean slerpOn;
+	protected boolean slerpOn;
 	
 	//Different constructors depending on how many parameters are specified
 	

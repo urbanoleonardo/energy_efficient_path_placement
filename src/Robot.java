@@ -27,9 +27,10 @@ public class Robot {
 	private double[] linkMasses;
 	private List<double[][]> inertiaTens;
 	private double[][] jointLimits;
-	private double[][] cogMatrix; //center of gravity matrix (SolidWorks)
-	private double[][] rc; //it has to be structured as 6x3 matrix to work down in the dynamic
-	private double[][] rici; //6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
+	private double[] speedLimits;  	//Maximum speed every axis can reach.
+	private double[][] cogMatrix; 	//center of gravity matrix (SolidWorks)
+	private double[][] rc; 			//it has to be structured as 6x3 matrix to work down in the dynamic
+	private double[][] rici; 		//6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
 	private double[][] r;
 	Target location;
 
@@ -48,55 +49,6 @@ public class Robot {
 
 	//Part of CONSTRUCTORS (if more than one are needed)
 
-	public Robot(String model_path){
-
-		String section_limiter = "**--";
-		String comment_limiter = "%%";
-		String s;
-
-		int section = 0;
-
-		try{
-			FileReader f;
-			f = new FileReader(model_path);
-			BufferedReader b;
-			b = new BufferedReader(f);
-
-			while(true){
-				s = b.readLine();
-				if(s == null)
-				{
-					break;
-				}
-
-				if(s.startsWith(comment_limiter) || s.isEmpty())
-				{
-					continue;
-				}
-				else
-				{
-					if(section == 0)
-					{
-						this.model = s;
-					}
-					if(s.startsWith(section_limiter))
-					{
-
-						notifyActualSection(section);
-						System.out.println(s);
-						copyRobotParameters(b, section);
-						section++;
-					}
-
-				}
-
-			}
-		}
-		catch (IOException e){
-			System.out.println("Error in opening the file");
-		}
-
-	}
 	
 	public Robot(String xml_FilePath, boolean xml_true){
 		
@@ -126,6 +78,10 @@ public class Robot {
 		return jointLimits;
 	}
 
+	public double[] getSpeedLimits() {
+		return speedLimits;
+	}
+	
 	public double[][] getParameters(String arg)
 	{
 
@@ -310,165 +266,6 @@ public class Robot {
 	//Part of PRIVATE methods that are used/called by inner methods
 	//
 
-	
-	private void copyRobotParameters (BufferedReader b, int section) throws IOException
-	{
-		String s;
-		String comment_limiter = "%%";
-		String section_limiter = "**--";
-		
-		double[][] temp_matr = new double[3][3];
-		
-		
-		int row_number = 0; //it's used to remember which row of the matrix we are copying
-		//Section where I still switch but I instantiate the attributes of the robot
-		//to be filled with data from the file
-
-		switch(section){
-		case 2: 
-			this.linkLength = new double[this.dof][2];
-			break;
-		case 3:
-			this.linkMasses = new double[this.dof];
-			break;
-		case 4:
-			this.jointLimits = new double[this.dof][2];
-			break;
-		case 5:
-			this.cogMatrix = new double[3][this.dof];
-			break;
-		case 6:
-			this.inertiaTens = new ArrayList<double[][]>();
-			
-
-		default:
-			break;
-		}
-
-
-
-		while(true){
-			s = b.readLine();
-			if(s == null)
-			{
-				break;
-			}
-			if(s.startsWith(comment_limiter) || s.isEmpty())
-			{
-				continue;
-			}
-			if(s.startsWith(section_limiter))
-			{
-				break;
-			}
-			if(section == 0)
-			{
-				this.model = s;
-				System.out.println(this.model);
-				continue;
-			}
-			String[] tokens = s.split(" ");
-			//System.out.println("the number of tokens in this string is " + tokens.length);
-			System.out.println(" ");
-			for(int i = 0; i<tokens.length; i++ )
-			{
-				
-				System.out.print(tokens[i] + " ");
-			}
-			
-			switch(section){
-			case 1: 
-				this.dof = Integer.parseInt(tokens[0]);
-				break;
-			case 2:
-				this.linkLength[row_number][0] = Double.parseDouble(tokens[0]);
-				this.linkLength[row_number][1] = Double.parseDouble(tokens[1]);
-				row_number++;
-				break;
-			case 3:
-				for(int i = 0; i<tokens.length; i++ )
-				{
-					this.linkMasses[i] = Double.parseDouble(tokens[i]);
-				}
-				break;
-			case 4:
-				//here the values are read in degrees but will be converted into RAD
-				this.jointLimits[row_number][0] = Double.parseDouble(tokens[0]) * Math.PI / 180;
-				this.jointLimits[row_number][1] = Double.parseDouble(tokens[1]) * Math.PI / 180;
-				row_number++;
-				break;
-			case 5:
-				/*
-				 * REMINDER
-				 * The center of gravity matrix is a 3xDOF matrix with ( x )
-				 * 													   ( y )
-				 * 													   ( z )
-				 * in every column for each joint of the robot.
-				 */
-				for(int i = 0; i<tokens.length; i++ )
-				{
-
-					this.cogMatrix[row_number][i] = Double.parseDouble(tokens[i]);
-
-				}
-				row_number++;
-				break;
-			case 6:
-				temp_matr[row_number][0] = Double.parseDouble(tokens[0]);
-				temp_matr[row_number][1] = Double.parseDouble(tokens[1]);
-				temp_matr[row_number][2] = Double.parseDouble(tokens[2]);
-				row_number++;
-				
-				if(row_number == 3)
-				{
-					row_number = 0;
-					this.inertiaTens.add(temp_matr);
-				}
-				
-				break;
-			case 7:
-				break;
-
-			default:
-				break;
-			}
-		}
-	}
-
-	private void notifyActualSection(int section)
-	{
-		String sec;
-
-		switch(section){
-		case 0:
-			sec = "Model of the Robot";
-			break;
-		case 1: 
-			sec = "Degrees of Freedom";
-			break;
-		case 2: 
-			sec = "Move to the wirst: joints lengths";
-			break;
-		case 3:
-			sec = "Link masses ";
-			break;
-		case 4: 
-			sec = "Joints working range: joints limits";
-			break;
-		case 5:
-			sec = "Center of Gravity ";
-			break;
-		case 6:
-			sec = "Inertia Tensors ";
-			break;
-
-		default:
-			sec = " ";
-			break;
-		}
-		System.out.println("The current section being compiled is: " + sec);
-	}
-
 	private void inTensiWRTFramei(){
 
 		/*
@@ -618,33 +415,34 @@ public class Robot {
 	        	 double a = Double.parseDouble(link.selectSingleNode("length/a").getText());
 	        	 double d = Double.parseDouble(link.selectSingleNode("length/d").getText());
 	        	 double mass = Double.parseDouble(link.selectSingleNode("mass").getText());
-	        	 double max_limit = Double.parseDouble(link.selectSingleNode("limit/max").getText());
-	        	 double min_limit = Double.parseDouble(link.selectSingleNode("limit/min").getText());
+	        	 double maxLimit = Double.parseDouble(link.selectSingleNode("limit/max").getText());
+	        	 double minLimit = Double.parseDouble(link.selectSingleNode("limit/min").getText());
+	        	 this.speedLimits[linkNumber] = Double.parseDouble(link.selectSingleNode("speedLimit").getText());
 	        	 double[] CoG = new double[3];
 	        	 CoG[0] = Double.parseDouble(link.selectSingleNode("CoG/x").getText());
 	        	 CoG[1] = Double.parseDouble(link.selectSingleNode("CoG/y").getText());
 	        	 CoG[2] = Double.parseDouble(link.selectSingleNode("CoG/z").getText());
 	        	 
-	        	 double[][] inertia_link = new double[3][3];
-	        	 inertia_link[0][0] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_11").getText());
-	        	 inertia_link[1][1] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_22").getText());
-	        	 inertia_link[2][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_33").getText());
-	        	 inertia_link[0][1] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_12").getText());
-	        	 inertia_link[0][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_13").getText());
-	        	 inertia_link[1][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_23").getText());
-	        	 inertia_link[2][1] = inertia_link[1][2]; //the InertiaTensor matrix is symmetric
-	        	 inertia_link[2][0] = inertia_link[0][2];
-	        	 inertia_link[1][0] = inertia_link[0][1];
+	        	 double[][] inertiaLink = new double[3][3];
+	        	 inertiaLink[0][0] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_11").getText());
+	        	 inertiaLink[1][1] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_22").getText());
+	        	 inertiaLink[2][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_33").getText());
+	        	 inertiaLink[0][1] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_12").getText());
+	        	 inertiaLink[0][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_13").getText());
+	        	 inertiaLink[1][2] = Double.parseDouble(link.selectSingleNode("InertiaTensor/elem_23").getText());
+	        	 inertiaLink[2][1] = inertiaLink[1][2]; //the InertiaTensor matrix is symmetric
+	        	 inertiaLink[2][0] = inertiaLink[0][2];
+	        	 inertiaLink[1][0] = inertiaLink[0][1];
 	        	 
 	        	 this.linkLength[linkNumber][0] = a;
 	        	 this.linkLength[linkNumber][1] = d;
 	        	 this.linkMasses[linkNumber] = mass;
-	        	 this.jointLimits[linkNumber][0] = min_limit * Math.PI / 180.0;
-	        	 this.jointLimits[linkNumber][1] = max_limit * Math.PI / 180.0;
+	        	 this.jointLimits[linkNumber][0] = minLimit * Math.PI / 180.0;
+	        	 this.jointLimits[linkNumber][1] = maxLimit * Math.PI / 180.0;
 	        	 
 	        	 for(int i=0; i < CoG.length; i++){this.cogMatrix[i][linkNumber] = CoG[i];}
 	        	 
-	        	 this.inertiaTens.add(linkNumber, inertia_link);
+	        	 this.inertiaTens.add(linkNumber, inertiaLink);
 	         }
 	         
 	        this.inTensiWRTFramei();
@@ -761,6 +559,7 @@ public class Robot {
 		this.linkLength = new double[DOF][2];
 		this.linkMasses = new double[DOF];
 		this.jointLimits = new double[DOF][2];
+		this.speedLimits = new double[DOF];
 		this.cogMatrix = new double[3][DOF];
 		this.inertiaTens = new ArrayList<double[][]>();
 		this.rc = new double[DOF][3];
