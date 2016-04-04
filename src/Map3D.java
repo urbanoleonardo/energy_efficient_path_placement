@@ -87,7 +87,8 @@ public class Map3D extends Applet{
 		 * TEST
 		 */
 
-		String xmlFilePath = "C:\\Users\\Leonardo Urbano\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+//		String xmlFilePath = "C:\\Users\\Leonardo Urbano\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+		String xmlFilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
 
 		double[][] h1 = { { 0.0, 0.0, 1.0, 0.59627 }, 
 				{ 1.0, 0.0, 0.0, 0.0 }, 
@@ -117,7 +118,7 @@ public class Map3D extends Applet{
 //		double res = 0.05;
 				double[] min = { -1.0, -1.0, 0.0 };
 				double[] max = { 1.0, 1.0, 1.0 };
-				double res = 0.1;
+				double res = 0.5;
 
 		long time = System.currentTimeMillis();
 		
@@ -774,7 +775,7 @@ public class Map3D extends Applet{
 
 		try {
 
-			s = loader.load("Robot 3D modelsIRB 1600.obj");
+			s = loader.load("src/Robot 3D models/IRB 1600.obj");
 
 		} catch (Exception e) {
 
