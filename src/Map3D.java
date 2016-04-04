@@ -774,7 +774,7 @@ public class Map3D extends Applet{
 
 		try {
 
-			s = loader.load("Robot 3D modelsIRB 1600.obj");
+			s = loader.load("src/Robot 3D models/IRB 1600.obj");
 
 		} catch (Exception e) {
 
