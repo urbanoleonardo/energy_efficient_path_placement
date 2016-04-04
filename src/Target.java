@@ -223,7 +223,7 @@ public double[][] getInvHomMatrix () {
 		BigDecimal[] buffer1 = new BigDecimal[vector.length];
 		BigDecimal[] buffer2 = new BigDecimal[vector.length];
 		BigDecimal[] res = new BigDecimal[vector.length];
-		MathContext mc1 = new MathContext(2, RoundingMode.HALF_DOWN);
+		MathContext mc1 = new MathContext(6, RoundingMode.HALF_DOWN);
 		MathContext mc2 = new MathContext(6, RoundingMode.HALF_DOWN);
 		
 //		for(int i = 0 ; i < this.position.length ; i++)

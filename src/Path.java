@@ -246,14 +246,7 @@ public class Path {
 			if(slerpOn){
 			
 				Quat4d qm = this.slerp(q0, q1, time/totTime);
-				rotm = this.quatToRotm(qm);
-				
-//				for(int i = 0; i < 3; i++){
-//					for(int j = 0; j < 3 ; j++){
-//						rotm[i][j] = 
-//					}
-//				}
-				
+				rotm = this.quatToRotm(qm);			
 			//this.quatToRotm(q0);
 			}else{
 				 rotm = this.initialPosition.getRotation();
@@ -261,7 +254,9 @@ public class Path {
 			//
 			
 			
-			//for the moment I'm not changing the rotation matrix
+			//The Targety is created.
+			//Rotm is changed only if slerpOn was TRUE, that is if a rotation between initial position
+			// and final position occurred.
 			Target newPointInTrajectory = new Target(position_vector, rotm);
 			
 			//add the new target to the trajectory

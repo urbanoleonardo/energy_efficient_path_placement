@@ -20,6 +20,7 @@ import com.sun.j3d.utils.geometry.Sphere;
 import org.jdesktop.j3d.loaders.vrml97.*;
 
 import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
+import com.sun.j3d.utils.behaviors.mouse.*;
 
 /*
  * TO DO:
@@ -68,7 +69,7 @@ public class Map3d {
 		 * TEST
 		 */
 
-		String directory = "C:\\Users\\Leonardo Urbano\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
+		String directory = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
 
 		double[][] h1 = { { 0.0, 0.0, 1.0, 0.59627 }, 
 						  { 1.0, 0.0, 0.0, 0.0 }, 
@@ -84,6 +85,11 @@ public class Map3d {
 		Target[] targets = new Target[2];
 		targets[0] = testTarget1;
 		targets[1] = testTarget2;
+		
+		double[] translationVector = {-testTarget1.getPosition()[0], -testTarget1.getPosition()[1], -testTarget1.getPosition()[2]};
+		targets[1].translateTarget(translationVector);
+		targets[0].translateTarget(translationVector);
+		
 		double x_sample = 1E-3;
 		double t_sample = 0.01;
 		double acceleration = 1.0;
@@ -92,8 +98,8 @@ public class Map3d {
 		p.setMaxAcc(acceleration);
 		p.setMaxVel(velocity);
 
-		// double[] min = {-0.5, 0.0, 0.0};
-		// double[] max = {1.0, 1.0, 1.0};
+//		 double[] min = {-0.5, 0.0, 0.0};
+//		 double[] max = {1.0, 1.0, 1.0};
 		// double res = 0.05;
 		double[] min = { -0.5, 0.0, 0.0 };
 		double[] max = { 0.5, 0.5, 0.5 };
@@ -228,7 +234,7 @@ public class Map3d {
 
 		float[] rgb = { 255, 0, 0 };
 
-		System.out.println("current index = " + pos[0] + " " + pos[1] + " " + pos[2]);
+//		System.out.println("current index = " + pos[0] + " " + pos[1] + " " + pos[2]);
 
 		/*
 		 * Here I calculate energy and rgb resolution according to the number of
@@ -318,6 +324,7 @@ public class Map3d {
 			for (int y = 0; y < weMatrix[0].length; y++) {
 				for (int z = 0; z < weMatrix[0][0].length; z++) {
 
+			
 					Target[] curr = new Target[2];
 					curr[0] = new Target(inPosH);
 					curr[1] = new Target(finPosH);
@@ -408,7 +415,8 @@ public class Map3d {
 		//
 		// u.getViewingPlatform().setViewPlatformBehavior(orbit);
 
-		BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000);
+//		BoundingSphere bounds = new BoundingSphere(new Point3d(), 10000);
+		BoundingSphere bounds = new BoundingSphere(new Point3d(), 0.00001);
 
 		// viewtrans = u.getViewingPlatform().getViewPlatformTransform();
 
@@ -420,6 +428,18 @@ public class Map3d {
 
 		u.getViewingPlatform().setPlatformGeometry(platformGeom);
 
+	}
+	
+	private void setMouseView(Canvas3D c, TransformGroup objTrans){
+		
+		BoundingSphere bounds = new BoundingSphere(new Point3d(), 0.00001);
+		
+
+		   MouseRotate behavior = new MouseRotate();
+		   behavior.setTransformGroup(objTrans);
+		   objTrans.addChild(behavior);
+		   behavior.setSchedulingBounds(bounds);
+		
 	}
 
 	private Transform3D setView(double[] center, double distance) {

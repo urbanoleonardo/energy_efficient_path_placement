@@ -12,44 +12,44 @@ import java.util.List;
 public class Test_robot_constructor {
 
 	public static void main(String[] args) {
-		String path = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\ABB IRB140.txt"; //percorso del file con i dati
-		//String path = "C:\\Users\\Enrico\\Desktop\\MatriceProva.txt";
-		
-		Robot newRobot = new Robot(path);
-		int DOF = newRobot.getDOF();
-		System.out.println("The degree of freedom of the robot are: " + DOF); //checked and working
-		System.out.println("The links lengths are the following: ");
-		double[][] linkLength = newRobot.getParameters("link length");
-		for(int i=0; i<linkLength.length; i++) //checked and working
-		{
-			for(int j=0;j<linkLength[0].length;j++)
-			{
-				System.out.print(linkLength[i][j] + " ");
-			}
-			System.out.println("");
-		}
-		
-		
-		double[][] jointLimit = newRobot.getParameters("joint limits");
-		for(int i=0; i<jointLimit.length; i++) //checked and working
-		{
-			for(int j=0;j<jointLimit[0].length;j++)
-			{
-				System.out.print(jointLimit[i][j]/Math.PI + " ");
-			}
-			System.out.println("");
-		}
-		
-		
-		double[][] COG = newRobot.getParameters("center of gravity");
-		for(int i=0; i<COG.length; i++) //checked and working
-		{
-			for(int j=0;j<COG[0].length;j++)
-			{
-				System.out.print(COG[i][j] + " ");
-			}
-			System.out.println("");
-		}
+//		String path = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\ABB IRB140.txt"; //percorso del file con i dati
+//		//String path = "C:\\Users\\Enrico\\Desktop\\MatriceProva.txt";
+//		
+//		Robot newRobot = new Robot(path);
+//		int DOF = newRobot.getDOF();
+//		System.out.println("The degree of freedom of the robot are: " + DOF); //checked and working
+//		System.out.println("The links lengths are the following: ");
+//		double[][] linkLength = newRobot.getParameters("link length");
+//		for(int i=0; i<linkLength.length; i++) //checked and working
+//		{
+//			for(int j=0;j<linkLength[0].length;j++)
+//			{
+//				System.out.print(linkLength[i][j] + " ");
+//			}
+//			System.out.println("");
+//		}
+//		
+//		
+//		double[][] jointLimit = newRobot.getParameters("joint limits");
+//		for(int i=0; i<jointLimit.length; i++) //checked and working
+//		{
+//			for(int j=0;j<jointLimit[0].length;j++)
+//			{
+//				System.out.print(jointLimit[i][j]/Math.PI + " ");
+//			}
+//			System.out.println("");
+//		}
+//		
+//		
+//		double[][] COG = newRobot.getParameters("center of gravity");
+//		for(int i=0; i<COG.length; i++) //checked and working
+//		{
+//			for(int j=0;j<COG[0].length;j++)
+//			{
+//				System.out.print(COG[i][j] + " ");
+//			}
+//			System.out.println("");
+//		}
 		
 		/*
 		 * Trying to test the path class
@@ -148,7 +148,9 @@ public class Test_robot_constructor {
 		 * --------------------
 		 */
 		try {
-			 String FilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
+//			 String FilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+			 String FilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140 TEST.xml";
+//			 String FilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 1600.xml";
  	         File inputFile = new File(FilePath);
 	         SAXReader reader = new SAXReader();
 	         Document document = reader.read( inputFile );
@@ -185,8 +187,17 @@ public class Test_robot_constructor {
 		 * XML ROBOT CONSTRUCTOR TESTING PART
 		 * --------------------
 		 */
-		 String FilePathXML = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML Costruttore Robot.xml";
 		
+		double[][] jointLimit;
+		double[][] COG;
+		double[][] linkLength;
+		int DOF;
+		
+//		 String FilePathXML = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+		 String FilePathXML = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140 TEST.xml";
+//		 String FilePathXML = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 1600.xml";
+//		 String FilePathXML = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 1600 TEST.xml";
+
 		Robot newRobotXML = new Robot(FilePathXML, true);
 		
 		DOF = newRobotXML.getDOF();
@@ -256,10 +267,55 @@ public class Test_robot_constructor {
 		targets[0] = testTarget1;
 		targets[1] = testTarget2;
 		
+		System.out.println("Initial position vector :");
+		Matrix.displayVector(targets[0].getPosition());
+		
+		double x = -0.4;
+		double y = 0.3;
+		double z = 0.15;
+//		
+//		double x = +0.4;
+//		double y = -0.3;
+//		double z = -0.15;
+		
+		double[] vector = {x , y , z};
+		
+		targets[0].translateTarget(vector);
+		targets[1].translateTarget(vector);
+		
+		System.out.println("");
+		System.out.println("Translated position vector :");
+		Matrix.displayVector(targets[0].getPosition());
+		
+		x = +0.4;
+		y = -0.3;
+		z = -0.15;
+		vector[0] = x;
+		vector[1] = y;
+		vector[2] = z;
+
+		targets[0].translateTarget(vector);
+		targets[1].translateTarget(vector);
+		
+		System.out.println("");
+		System.out.println("Translated again position vector :");
+		Matrix.displayVector(targets[0].getPosition());
 		OnlinePlanner dynSolution = new OnlinePlanner(targets, newRobotXML);
 		
 		dynSolution.run();
+//		dynSolution.run(targets[0], targets[1]);
 		
+//		x = +0.4;
+//		y = -0.3;
+//		z = -0.15;
+//		vector[0] = x;
+//		vector[1] = y;
+//		vector[2] = z;
+//
+//		targets[0].translateTarget(vector);
+//		targets[1].translateTarget(vector);
+//		
+//		dynSolution.run(targets[0], targets[1]);
 		
 //		Path newPath = new Path(targets[0], targets[1], t_sample, x_sample);
 //		newPath.setMaxAcc(acceleration);
@@ -567,42 +623,154 @@ public class Test_robot_constructor {
 				}
 //				System.out.println("Solution vector:");
 //				Matrix.displayVector(dynamic_solution);
+		//----------------------------------------------
+		//----------------------------------------------
+		//----------------------------------------------
+				
+				
+				double[][] testTarget3 = {
+						{1.0, 0.0, 0.0, 0},
+						{0, 1.0, 0.0, 0},
+						{0, 0.0, 1.0, 0},
+						{0.0, 0.0, 0.0, 1}
+				};
+				double[][] testTarget4 = {
+						{0, 1, 0.0, 0},
+						{0, 0.0, 1, 3},
+						{1, 0.0, 0, 1},
+						{0.0, 0.0, 0.0, 1}
+				};
+				
+//				Path testPath = new Path(new Target(testTarget3), new Target(testTarget4), 0.01, 1E-3);
+//				testPath.setMaxAcc(2);
+//				testPath.setMaxVel(0.2);
+//				testPath.interpolate();
+//				
+//				Trajectory trajectory = testPath.getTrajectory();
+//				
+//				System.out.println("");
+//				Matrix.displayMatrix(trajectory.points.get(0).getRotation());
+//				
+//				System.out.println("");
+//				Matrix.displayMatrix(trajectory.points.get(5).getRotation());
+//				
+//				System.out.println("");
+//				Matrix.displayMatrix(trajectory.points.get(trajectory.points.size()-1).getRotation());
+//				
+//				double timeTest0 = testPath.getTrajectory().timeInstants.get(0);
+//				double timeTest1 = testPath.getTrajectory().timeInstants.get(1);
+//				
+//				System.out.println("");
+//				System.out.println("Time of index 0 : " + timeTest0 + " and index 1 : " + timeTest1);
+//				
+//				testPath.getTrajectory().shiftTime(0.5);
+//				timeTest0 = testPath.getTrajectory().timeInstants.get(0);
+//				timeTest1 = testPath.getTrajectory().timeInstants.get(1);
+//				
+//				System.out.println("After Time shifting");
+//				System.out.println("Time of index 0 : " + timeTest0 + " and index 1 : " + timeTest1);
+				
+				//--------------------------------------------
+				//--------------------------------------------
+				//--------------------------------------------
+				//--------------------------------------------
+				//Testing SquarePath class and SegmentedPath
+				
+				double[][] vertex1 = {
+						{0.0, 0.0, 1.0, 0.59627},
+						{1.0, 0.0, 0.0, -0.21132},
+						{0.0, 1.0, 0.0, 0.38041},
+						{0.0, 0.0, 0.0, 1.0}
+				};
+				
+				double[][] vertex2 = {
+						{0.0, 0.0, 1.0, 0.49627},
+						{1.0, 0.0, 0.0, -0.21132},
+						{0.0, 1.0, 0.0, 0.38041},
+						{0.0, 0.0, 0.0, 1.0}
+				};
+				
+				double[][] vertex3 = {
+						{0.0, 0.0, 1.0, 0.49627},
+						{1.0, 0.0, 0.0, -0.31132},
+						{0.0, 1.0, 0.0, 0.38041},
+						{0.0, 0.0, 0.0, 1.0}
+				};
+				
+				double[][] vertex4 = {
+						{0.0, 0.0, 1.0, 0.59627},
+						{1.0, 0.0, 0.0, -0.31132},
+						{0.0, 1.0, 0.0, 0.38041},
+						{0.0, 0.0, 0.0, 1.0}
+				};
+				
+				Target point1 = new Target(vertex1);
+				Target point2 = new Target(vertex2);
+				Target point3 = new Target(vertex3);
+				Target point4 = new Target(vertex4);
+				
+				Target[] points = { point1, point2, point3, point4};
+				
+				double tSample = 0.01;
+				double xSample = 1E-3;
+				
+				Path testSPath = new SquarePath(points, tSample, xSample);
+				acceleration = 1.0;
+				velocity = 0.2;
+				
+				testSPath.setMaxAcc(acceleration);
+				testSPath.setMaxVel(velocity);
+				
+				dynSolution.run(testSPath);
+				
+//				dynSolution.displayThetaM(70);
+//				dynSolution.displayThetaM(71);
+//				Trajectory testTrajectory = testSPath.interpolate();
 		
+//				System.out.println("Number of points : " + testTrajectory.points.size());
+//				System.out.println("Number of points : " + testTrajectory.timeInstants.size());
+//				System.out.println("Number of points : " + testTrajectory.extForces.size());
+				
+//				Matrix.displayVector(testTrajectory.points.get(69).getPosition());
+//				Matrix.displayVector(testTrajectory.points.get(70).getPosition());
+//				Matrix.displayVector(testTrajectory.points.get(71).getPosition());
+//				Matrix.displayVector(testTrajectory.points.get(72).getPosition());
+//				Matrix.displayVector(testTrajectory.points.get(222).getPosition());
+				
+//				for(Target point : testTrajectory.points){
+//					System.out.println("");
+//					System.out.println("Point: ");
+//					Matrix.displayVector(point.getPosition());
+//				}
+				double[] speedLimits = newRobotXML.getSpeedLimits();
+				
+//				Matrix.displayVector(speedLimits);
+				
+				double[][] h1 = { { 0.0, 0.0, 1.0, 0.59627 }, 
+						  { 1.0, 0.0, 0.0, 0.0 }, 
+						  { 0.0, 1.0, 0.0, 0.66282 },
+						  { 0.0, 0.0, 0.0, 1.0 } };
+		double[][] h2 = { { 0.0, 0.0, 1.0, 0.59627 },
+						  { 1.0, 0.0, 0.0, -0.21132 }, 
+						  { 0.0, 1.0, 0.0, 0.58041 },
+						  { 0.0, 0.0, 0.0, 1.0 } };
+
+		testTarget1 = new Target(h1);
+		testTarget2 = new Target(h2);
+		targets = new Target[2];
+		targets[0] = testTarget1;
+		targets[1] = testTarget2;
+		
+//		double[] translationVector = {-testTarget1.getPosition()[0], -testTarget1.getPosition()[1], -testTarget1.getPosition()[2]};
+//		for(int j = 0 ; j < 10000; j++){
+//			double[] translationVector = {0.05, 0.0, 0.05};
+//			Matrix.displayVector(translationVector);
+		
+//			targets[1].translateTarget(translationVector);
+//			targets[0].translateTarget(translationVector);
+		
+//			Matrix.displayVector(targets[0].getPosition());
+//		}
 	}
-	
-	public static double[][] MultiplyMatrices(double[][] left, double[][] right){
-
-		/*
-		 * Function implemented to multiply 2 matrices (useful in Hfrom_to)
-		 */
-
-		double[][] M = new double[left.length][right[0].length];
-		
-		for(int row = 0; row < M.length; row++)
-			for(int column = 0; column < M[0].length; column++)
-				M[row][column] = 0;
-		
-
-		if(left[0].length == right.length){
-
-			for(int row = 0; row < M.length; row++)
-			{
-				for(int column = 0; column < M[0].length; column++)
-				{
-					for(int i = 0; i < left[0].length; i++)
-					{
-					M[row][column] += left[row][i] * right[i][column];
-					}
-				}
-		
-			}
-
-		}else{
-			System.out.println("The dimension of the matrices do not agree. [m*n n*p = m*p]");
-		}
-
-		return M;
-	}
-	
 	
 }
