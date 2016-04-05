@@ -117,7 +117,7 @@ public class Map3D extends Applet{
 //		double res = 0.05;
 				double[] min = { -1.0, -1.0, 0.0 };
 				double[] max = { 1.0, 1.0, 1.0 };
-				double res = 0.1;
+				double res = 0.05;
 
 		long time = System.currentTimeMillis();
 		
