@@ -177,18 +177,18 @@ public class Path {
 		{
 			totTime = (distance - (2*accTime)*this.maxVel/2.0)/this.maxVel + 2*accTime;
 			maxVel = this.maxVel;
-			System.out.println("The maximum velocity is: " + this.maxVel + " m/s");
+//			System.out.println("The maximum velocity is: " + this.maxVel + " m/s");
 		}
 		else
 		{
 			maxVel = Math.sqrt(distance*2*this.maxVel/(2*accTime));
 			totTime = distance*2/maxVel;
 			accTime = accTime*maxVel/this.maxVel;
-			System.out.println("The velocity profile is triangular, so the new maximum velocity is: " + maxVel + " m/s");
+//			System.out.println("The velocity profile is triangular, so the new maximum velocity is: " + maxVel + " m/s");
 		}
 		
 		//log for debugging
-		System.out.println("Distance: " + distance + " total time : " + totTime + " and maximum velocity : " + maxVel);
+//		System.out.println("Distance: " + distance + " total time : " + totTime + " and maximum velocity : " + maxVel);
 		//System.out.println("Acceleration time: " + acc_time);
 		
 		accDistance = maxVel*accTime/2;
@@ -277,7 +277,7 @@ public class Path {
 		interpolatedPath.timeInstants.add(time);
 		//the time offset still has to be considered (maybe a method?)
 		
-		System.out.println("Sampling time : " + this.tSample);
+//		System.out.println("Sampling time : " + this.tSample);
 		//System.out.println("Number of points N: " + N);
 		
 		this.interpolatedPath = interpolatedPath;
