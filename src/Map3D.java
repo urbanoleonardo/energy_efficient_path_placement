@@ -87,7 +87,9 @@ public class Map3D extends Applet{
 		 * TEST
 		 */
 
-		String xmlFilePath = "C:\\Users\\Leonardo Urbano\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+//		String xmlFilePath = "C:\\Users\\Leonardo Urbano\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+//		String xmlFilePath = "C:\\Users\\Enrico\\Google Drive\\Tesi\\Prova Costruttore Robot\\XML ABB IRB 140.xml";
+		String xmlFilePath = "src/Robot Constructors/XML ABB IRB 140.xml";
 
 		double[][] h1 = { { 0.0, 0.0, 1.0, 0.59627 }, 
 				{ 1.0, 0.0, 0.0, 0.0 }, 
@@ -639,23 +641,23 @@ public class Map3D extends Applet{
 
 					currPos = Matrix.copyVector(point.getPosition());
 
-					System.out.println("currPos = ");
-					Matrix.displayVector(currPos);
+//					System.out.println("currPos = ");
+//					Matrix.displayVector(currPos);
 
 					curr[0].translateTarget(currPos);
 					curr[1].translateTarget(currPos);
 
-					System.out.println("Current initial position: ");
-					Matrix.displayMatrix(curr[0].getHomMatrix());
+//					System.out.println("Current initial position: ");
+//					Matrix.displayMatrix(curr[0].getHomMatrix());
 
-					System.out.println("Current final position: ");
-					Matrix.displayMatrix(curr[1].getHomMatrix());
+//					System.out.println("Current final position: ");
+//					Matrix.displayMatrix(curr[1].getHomMatrix());
 
 					/*
 					 * Here I create the thread to calculate the energy value
 					 * with current initial and final position
 					 */
-					dynSolution.run(curr[0], curr[1]);
+					dynSolution.run(curr[0], curr[1], point);
 
 					/*
 					 * Every time the Online Planner calculates an energy value
@@ -664,7 +666,7 @@ public class Map3D extends Applet{
 					 * to the list
 					 */
 					
-					double energy = dynSolution.getEnergyList().get(dynSolution.getEnergyList().size() - 1);
+					double energy = dynSolution.getEnergyList().get(dynSolution.getEnergyList().size() - 1).getEnergy();
 					
 					if(energy != 0.0){
 						

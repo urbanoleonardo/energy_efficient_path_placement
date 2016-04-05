@@ -29,7 +29,7 @@ public class OnlinePlanner implements Runnable{
 	private double[][] rc; //6x3 matrix as well. The reason is because in loops 1x3 vectors are needed and will be taken by having r_c[i] instructions
 	private double[][] r;
 	
-	private List<Double> energyList;
+	private List<EnergyPoint> energyList;
 	
 	
 	public OnlinePlanner(Target[] targets, Robot robot)
@@ -51,126 +51,23 @@ public class OnlinePlanner implements Runnable{
 		
 		this.currPosition = targets[0];
 		
-		this.energyList = new ArrayList<Double>();
+		this.energyList = new ArrayList<EnergyPoint>();
 	}
-	
-	
-	//-----------------------------------------|
-	//-----------------------------------------|
-	//  OBSOLETE METHOD. NOW solver() is USED  |
-	//-----------------------------------------|
-	//-----------------------------------------|
-//	public void run(){
-//		System.out.println("The online planner has been started.");
-//		
-//		//Somebody has to decide them
-//		double x_sample = 1E-3;
-//		double t_sample = 0.01;
-//		
-//		// TODO get current position somehow
-//		
-//		for( int i = 0; i < targetsLength ; i++){
-//		//Line to be removed
-//		if(currPosition == targets[i]){
-//			System.out.println("Current position is equal to the next target.");
-//			continue;
-//		}
-//		//
-//		
-//		/*
-//		 * need to think of a way to pass this thread the info about the type of path
-//		 */
-//		
-//		Path path = new Path(currPosition, targets[i], t_sample, x_sample);
-//		path.setMaxAcc(acceleration);
-//		path.setMaxVel(velocity);
-//		path.interpolate();
-//		
-//		//Trajectory is private so I can't interrogate it directly
-//		Trajectory pathTrajectory = path.getTrajectory();
-//		int trajectoryLength = pathTrajectory.points.size();
-//
-//		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
-//		
-////		for(int l = 0 ; l < pathTrajectory.timeInstants.size(); l++){
-////			System.out.println(pathTrajectory.timeInstants.get(l));
-////		}
-//		
-////		for(int l = 0 ; l < pathTrajectory.points.size(); l++){
-////			Matrix.displayVector(pathTrajectory.points.get(l).getPosition());
-////		}
-//		
-//		thetaM = new double[6][8][trajectoryLength]; //trajectoryLength without +1 ?? 
-//
-//		long time1 = System.nanoTime();
-//		int error = 0;
-//		for(int j = 0; j < trajectoryLength && error == 0; j++){
-//			/*
-//			 * PART where inverse kinematics is performed
-//			 */
-//			
-//			error = onlineInvKinematics(pathTrajectory.points.get(j), j);
-//		
-//		}
-//		
-//		
-//		
-//		//Check if the configurations left can be followed by the robot
-//		int[] Solution_vector = new int[thetaM[0][0].length];
-//		ArrayList<int[]> Solutions = new ArrayList<int[]>();
-//		configIteration(thetaM, 0, 0, pathTrajectory.timeInstants,Solution_vector, Solutions);
-//		
-//		displayThetaM(134);
-////		for(int k=0; k<6 ; k++){
-////			System.out.print((thetaM[k][Solutions.get(0)[0]][0]) + " ");
-////		}
-////		System.out.println("");
-//		
-////		long time2 = System.nanoTime();
-//		int NumOfSolutions = Solutions.size();
-//		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
-////		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
-//		
-////		//FOR DEBUG
-////		System.out.println("");
-////		for(int j = 0 ; j < Solutions.get(3).length; j++){
-////			System.out.println(Solutions.get(1)[j]);
-////		}
-//		//
-//		
-//		if(NumOfSolutions == 0)
-//		{
-//			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
-////			this.energyList.add(0, 0.0);
-//			this.energyList.add(0.0);
-//			break;
-//		}
-//		//Once we have at least a series of configuration to the final target, the inverse dynamics
-//		//can be calculated.
-//		
-//		onlineInvDynamics(pathTrajectory, Solutions);
-//		long time2 = System.nanoTime();
-//		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
-//		
-//		currPosition = targets[i];
-//		}	
-//	}
-	
 	
 	public void run(){
 		if(this.path == null){
-			double x_sample = 1E-3;
-			double t_sample = 0.01;
+			double xSample = 1E-3;
+			double tSample = 0.01;
 			boolean canSolve = true;
 			
 			for( int i = 0; i < targetsLength && canSolve; i++){
 				//Line to be removed
 				if(currPosition == targets[i]){
-					System.out.println("Current position is equal to the next target.");
+//					System.out.println("Current position is equal to the next target.");
 					continue;
 				}
 				
-			this.path = new Path(currPosition, targets[i], t_sample, x_sample);
+			this.path = new Path(currPosition, targets[i], tSample, xSample);
 			path.setMaxAcc(acceleration);
 			path.setMaxVel(velocity);
 			
@@ -195,13 +92,49 @@ public class OnlinePlanner implements Runnable{
 	}
 	
 	public void run(Target target1,Target target2 ){
+		double xSample = 1E-3;
+		double tSample = 0.01;
+		
 		targets = new Target[2];
 		targetsLength = 2;
 		currPosition = target1;
 		targets[0] = target1;
 		targets[1] = target2;
 		
-		this.run();
+		this.path = new Path(target1, target2, tSample, xSample);
+		path.setMaxAcc(acceleration);
+		path.setMaxVel(velocity);
+		
+		solver(path);
+		this.path = null;
+		
+//		this.run();
+	}
+	
+	public void run(Target target1,Target target2, Point3D point3D){
+		double xSample = 1E-3;
+		double tSample = 0.01;
+		
+		targets = new Target[2];
+		targetsLength = 2;
+		currPosition = target1;
+		targets[0] = target1;
+		targets[1] = target2;
+		
+		this.path = new Path(target1, target2, tSample, xSample);
+		path.setMaxAcc(acceleration);
+		path.setMaxVel(velocity);
+		
+		solver(path);
+		
+		//I need to add the position vector to the energyPoint just calculated
+		EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
+		newPoint.setPosition(point3D.getPosition());
+		this.energyList.set(this.energyList.size() - 1, newPoint);
+		
+		this.path = null;
+		
+//		this.run();
 	}
 	
 	public void run(Path path){
@@ -244,7 +177,7 @@ public class OnlinePlanner implements Runnable{
 		Trajectory pathTrajectory = inputPath.interpolate();
 		int trajectoryLength = pathTrajectory.points.size();
 
-		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
+//		System.out.println("Interpolation over. Points size: " + trajectoryLength + " Time instants : " + pathTrajectory.timeInstants.size());
 //		System.out.println("Number of points in Ext Torques " + pathTrajectory.extTorques.size());
 //		for(int l = 0 ; l < pathTrajectory.timeInstants.size(); l++){
 //			System.out.println(pathTrajectory.timeInstants.get(l));
@@ -281,7 +214,7 @@ public class OnlinePlanner implements Runnable{
 		
 //		long time2 = System.nanoTime();
 		int NumOfSolutions = Solutions.size();
-		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
+//		System.out.println("End of Path Planning. The number of solutions found is : " + NumOfSolutions);
 //		System.out.println("Time for the inverse Kinematics: " + (time2-time1)/1E9);
 		
 //		//FOR DEBUG
@@ -296,8 +229,9 @@ public class OnlinePlanner implements Runnable{
 			/*
 			 * If there are no feasible solutions we print an error log and we add ZERO energy to the list.
 			 */
-			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
-			this.energyList.add(0.0);
+//			System.out.println("Impossible to reach that target since there is no solution to the inverse kinematic problem.");
+			EnergyPoint newPoint = new EnergyPoint(0d);
+			this.energyList.add(newPoint);
 			return false;
 		}
 
@@ -308,7 +242,7 @@ public class OnlinePlanner implements Runnable{
 		
 		onlineInvDynamics(pathTrajectory, Solutions);
 		long time2 = System.nanoTime();
-		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
+//		System.out.println("Time for the whole procedure: " + (time2-time1)/1E9);
 		
 		return true;
 	}
@@ -337,8 +271,8 @@ public class OnlinePlanner implements Runnable{
 			
 			if(theta_23[0][0] == 1000 || theta_23[1][0] == 1000)
 			{
-				System.out.println("Trajectory impossible to track: theta_2 or theta_3 assume impossible values");
-				System.out.println("hence, the whole sequence of points is impossible.");
+//				System.out.println("Trajectory impossible to track: theta_2 or theta_3 assume impossible values");
+//				System.out.println("hence, the whole sequence of points is impossible.");
 				return -1; //will be used by the caller to stop the whole trajectory
 			}
 			
@@ -491,11 +425,11 @@ public class OnlinePlanner implements Runnable{
 			 * For the 3Dmap only the energy consumption would be needed but here the planner
 			 * has to give more information to the robot on how to actually follow the trajectory.
 			 */
-			System.out.println("Combination with energy: " + energy);
+//			System.out.println("Combination with energy: " + energy);
 			
 			if(energy < minEnergy){
 				
-				System.out.println("Solution with energy: " + energy);
+//				System.out.println("Solution with energy: " + energy);
 				
 				minEnergy = energy;
 				optDynSolution = dynSolutionVector;
@@ -503,7 +437,8 @@ public class OnlinePlanner implements Runnable{
 			}
 		}
 		System.out.println("The chosen solution was the one requiring " + minEnergy + " J. ");
-		this.energyList.add(minEnergy);
+		EnergyPoint newPoint = new EnergyPoint(minEnergy);
+		this.energyList.add(newPoint);
 	}
 	
 	private double[] dynamicAnalysis(double[] theta, double[] dtheta, double[] ddtheta, double[] T, double[] f){
@@ -752,7 +687,7 @@ public class OnlinePlanner implements Runnable{
 		{
 			theta_23[0] = theta_2;
 			theta_23[1] = theta_3;
-			System.out.println("Impossible to reach that target.");
+//			System.out.println("Impossible to reach that target.");
 			return theta_23;
 		}
 		else
@@ -826,7 +761,7 @@ public class OnlinePlanner implements Runnable{
 		{
 			if(-0.0001 < theta_5[i] && theta_5[i] < 0.0001){
 				
-				System.out.println("There is a Singularity in : " + point_i);
+//				System.out.println("There is a Singularity in : " + point_i);
 				
 				//theta_5 is 0 and we're in a singularity case
 				
@@ -1024,7 +959,7 @@ public class OnlinePlanner implements Runnable{
 					}
 					
 					solutions.add(newSolution);
-					System.out.println("New solution found, the number of solutions is : " + solutions.size());
+//					System.out.println("New solution found, the number of solutions is : " + solutions.size());
 					
 				}
 				
@@ -1038,8 +973,6 @@ public class OnlinePlanner implements Runnable{
 		int error = 0;
 		//point_i will be for sure >= 1
 		double dTime = trajectoryTimes.get(point) - trajectoryTimes.get(point - 1);
-//		double dTime = 0.01;
-//		double[] w_max = {200.0, 200.0, 260.0, 360, 360, 450};
 		double[] wMax = {this.speedLimits[0], this.speedLimits[1], this.speedLimits[2], this.speedLimits[3], this.speedLimits[4], this.speedLimits[5]};
 		double[] thMax = new double[wMax.length];
  		
@@ -1106,7 +1039,7 @@ public class OnlinePlanner implements Runnable{
 		return this.thetaM;
 	}
 	
-	public List<Double> getEnergyList(){
+	public List<EnergyPoint> getEnergyList(){
 		return this.energyList;
 	}
 	

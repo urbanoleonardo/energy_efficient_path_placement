@@ -11,6 +11,16 @@ public class EnergyPoint implements Comparable<EnergyPoint>{
 	
 	public EnergyPoint () {}
 	
+	public EnergyPoint (double x, double y, double z){
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	
+	public EnergyPoint (double energy){
+		this.energy = energy;
+	}
+	
 	public double[] getPosition() {
 		return new double[] {x, y, z};
 	}
