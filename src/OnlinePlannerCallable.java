@@ -1,13 +1,14 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /*
 TO DO 
 decide how to get the current position of the robot, so the starting point that is
 needed for the inverse kinematics. 
 */
-public class OnlinePlanner implements Runnable{
+public class OnlinePlannerCallable implements Callable{
 
 	private Target currPosition;
 	private int targetsLength;
@@ -32,10 +33,9 @@ public class OnlinePlanner implements Runnable{
 	
 	private List<EnergyPoint> energyList;
 	private Point3D point3D = null;
-	private List<Point3D> points3D = null;
 	
 	
-	public OnlinePlanner(Robot robot)
+	public OnlinePlannerCallable(Robot robot)
 	{
 		
 		this.robot = robot;
@@ -44,7 +44,7 @@ public class OnlinePlanner implements Runnable{
 		this.energyList = new LinkedList<EnergyPoint>();
 	}
 	
-	public OnlinePlanner(Target[] targets, Robot robot)
+	public OnlinePlannerCallable(Target[] targets, Robot robot)
 	{
 		
 		targetsLength = copyTargets(targets);
@@ -56,7 +56,7 @@ public class OnlinePlanner implements Runnable{
 		this.energyList = new LinkedList<EnergyPoint>();
 	}
 	
-	public OnlinePlanner(Target target1, Target target2, Robot robot)
+	public OnlinePlannerCallable(Target target1, Target target2, Robot robot)
 	{
 		
 		this.robot = robot;
@@ -69,7 +69,7 @@ public class OnlinePlanner implements Runnable{
 		this.energyList = new LinkedList<EnergyPoint>();
 	}
 	
-	public OnlinePlanner(Target target1, Target target2, Robot robot, Point3D point3D)
+	public OnlinePlannerCallable(Target target1, Target target2, Robot robot, Point3D point3D)
 	{
 		
 		this.robot = robot;
@@ -83,102 +83,59 @@ public class OnlinePlanner implements Runnable{
 		this.point3D = point3D;
 	}
 	
-	public OnlinePlanner(Path p, Robot robot, List<Point3D> points3D)
-	{
-		
-		this.robot = robot;
-		this.copyRobotParameters();		
-		
-		this.path = p;
-		path.setMaxAcc(acceleration);
-		path.setMaxVel(velocity);
-		
-		this.energyList = new LinkedList<EnergyPoint>();
-		this.points3D = points3D;
-	}
-	
-	public void run(){
-		if(this.points3D == null){
-			if(this.path == null){
-				double xSample = 1E-3;
-				double tSample = 0.01;
-				boolean canSolve = true;
-
-				for( int i = 0; i < targetsLength && canSolve; i++){
-					//Line to be removed
-					if(currPosition == targets[i]){
-						//					System.out.println("Current position is equal to the next target.");
-						continue;
-					}
-
-					this.path = new Path(currPosition, targets[i], tSample, xSample);
-					path.setMaxAcc(acceleration);
-					path.setMaxVel(velocity);
-
-					canSolve = solver(path);
-					currPosition = targets[i];
-
-					if(point3D != null){
-						//I need to add the position vector to the energyPoint just calculated
-						EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
-						newPoint.setPosition(point3D.getPosition());
-						this.energyList.set(this.energyList.size() - 1, newPoint);
-					}
+	public EnergyPoint call(){
+		if(this.path == null){
+			double xSample = 1E-3;
+			double tSample = 0.01;
+			boolean canSolve = true;
+			
+			for( int i = 0; i < targetsLength && canSolve; i++){
+				//Line to be removed
+				if(currPosition == targets[i]){
+//					System.out.println("Current position is equal to the next target.");
+					continue;
 				}
-
-
-			}else {
-
-				solver(path);
-
-				if(point3D != null){
-					//I need to add the position vector to the energyPoint just calculated
-					EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
-					newPoint.setPosition(point3D.getPosition());
-					this.energyList.set(this.energyList.size() - 1, newPoint);
-				}
-			}
-		} else {
+				
+			this.path = new Path(currPosition, targets[i], tSample, xSample);
+			path.setMaxAcc(acceleration);
+			path.setMaxVel(velocity);
 			
-			Target[] targets = path.getPathPositions();
-
-			double[][] inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
-			double[][] finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+			canSolve = solver(path);
+			currPosition = targets[i];
 			
-			for(Point3D point : points3D){
-				
-				Target[] curr = new Target[2];
-				curr[0] = new Target(inPosH);
-				curr[1] = new Target(finPosH);
-				double[] currPos = Matrix.copyVector(point.getPosition());
-				curr[0].translateTarget(currPos);
-				curr[1].translateTarget(currPos);
-			
-				
-				Path currentPath = new Path(curr[0], curr[1]);
-				currentPath.setMaxAcc(acceleration);
-				currentPath.setMaxVel(velocity);
-				
-				solver(currentPath);
-				
+			if(point3D != null){
+				//I need to add the position vector to the energyPoint just calculated
 				EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
-				newPoint.setPosition(point.getPosition());
+				newPoint.setPosition(point3D.getPosition());
 				this.energyList.set(this.energyList.size() - 1, newPoint);
+				}
 			}
-
+			
+			
+		}else {
+			
+			solver(path);
+			
+			if(point3D != null){
+				//I need to add the position vector to the energyPoint just calculated
+				EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
+				newPoint.setPosition(point3D.getPosition());
+				this.energyList.set(this.energyList.size() - 1, newPoint);
+				}
 		}
-
-
+		
+		
 		this.path = null;
-		this.point3D = null;
-		this.points3D = null;
+		this.point3D= null;
+		
+		return this.energyList.get(this.energyList.size() - 1);
 	}
 	
 	public void run(Target newTarget){
 		targets = new Target[1];
 		targetsLength = 1;
 		targets[0] = newTarget;
-		this.run();
+		this.call();
 		
 	}
 	
@@ -230,7 +187,7 @@ public class OnlinePlanner implements Runnable{
 	
 	public void run(Path path){
 		this.path = path;
-		this.run();
+		this.call();
 	}
 	
 	public void run(Path path, Point3D point3D){
@@ -352,43 +309,44 @@ public class OnlinePlanner implements Runnable{
 	}
 	
 	
-	private int onlineInvKinematics(Target nextPosition, int point_i)
+	private int onlineInvKinematics(Target Next_position, int point_i)
 	{
 		/*
 		 * Need to get the coordinates of the WIRST center Pw
 		 */
 		
-//		double[] P = nextPosition.getPosition();
+		double[] P = Next_position.getPosition();
 		double a6 = linkLength[5][0];
-		double[] gw = {a6*nextPosition.getRotation()[0][2], a6*nextPosition.getRotation()[1][2], a6*nextPosition.getRotation()[2][2]};
-		double[] Pw = Matrix.subtractVectors(nextPosition.getPosition(),gw);
+		double[] gw = {a6*Next_position.getRotation()[0][2], a6*Next_position.getRotation()[1][2], a6*Next_position.getRotation()[2][2]};
+		double[] Pw = new double[3];
+		Pw = Matrix.subtractVectors(P,gw);
 		
-		for(int i = 0; i < Pw.length; i++){Pw[i] = nextPosition.getPosition()[i] - gw[i];}
+		for(int i = 0; i < Pw.length; i++){Pw[i] = P[i] - gw[i];}
 	
 		
-		double[] theta1 = solveTheta1(Pw);
+		double[] theta_1 = solveTheta1(Pw);
 		
-		for(int i = 0; i < theta1.length; i++)
+		for(int i = 0; i < theta_1.length; i++)
 		{
-			double[][] theta23 = solveTheta23(Pw, theta1[i], i);
+			double[][] theta_23 = solveTheta23(Pw, theta_1[i], i);
 			
-			if(theta23[0][0] == 1000 || theta23[1][0] == 1000)
+			if(theta_23[0][0] == 1000 || theta_23[1][0] == 1000)
 			{
 //				System.out.println("Trajectory impossible to track: theta_2 or theta_3 assume impossible values");
 //				System.out.println("hence, the whole sequence of points is impossible.");
 				return -1; //will be used by the caller to stop the whole trajectory
 			}
 			
-			for(int j = 0; j < theta23.length; j++)
+			for(int j = 0; j < theta_23.length; j++)
 			{
-				double theta2 = theta23[0][j] - Math.PI/2;
-				double theta3 = Math.PI/2 - theta23[1][j];
+				double theta2 = theta_23[0][j] - Math.PI/2;
+				double theta3 = Math.PI/2 - theta_23[1][j];
 				if(theta3 < -Math.PI/2)
 				{
 					theta3 += 2*Math.PI; 
 				}
 				
-				double[][] theta_456 = solveTheta456(nextPosition, theta1[i], theta2, theta3, point_i ); 
+				double[][] theta_456 = solveTheta456(Next_position, theta_1[i], theta2, theta3, point_i ); 
 				
 				
 				
@@ -398,7 +356,7 @@ public class OnlinePlanner implements Runnable{
 					index--;
 					
 					
-				thetaM[0][index][point_i] = theta1[i];
+				thetaM[0][index][point_i] = theta_1[i];
 				thetaM[1][index][point_i] =	theta2;
 				thetaM[2][index][point_i] =	theta3;
 				thetaM[3][index][point_i] = theta_456[0][k];

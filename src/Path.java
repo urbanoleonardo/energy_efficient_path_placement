@@ -50,6 +50,9 @@ public class Path {
 		this.initialPosition = initialPosition;
 		this.finalPosition = finalPosition;
 		
+		this.tSample = 0.01;		//If a different resolution is required it has to be specified
+		this.xSample = 1E-3;
+		
 		if(Matrix.equals(this.initialPosition.getRotation(), this.finalPosition.getRotation())){
 			this.slerpOn = false;
 		} else{
