@@ -11,10 +11,16 @@ import com.sun.j3d.utils.universe.PlatformGeometry;
 import com.sun.j3d.utils.behaviors.keyboard.*;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import com.sun.j3d.loaders.Scene;
 
 import java.awt.event.KeyListener;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.awt.event.KeyEvent;
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
 import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
@@ -148,7 +154,9 @@ public class Map3D extends Applet{
 		 * - robot model;
 		 */
 		
-		List<EnergyPoint> energyCloud = createEnergyCloud(r, p, we);
+//		List<EnergyPoint> energyCloud = createEnergyCloud(r, p, we);
+		List<EnergyPoint> energyCloud = createEnergyCloudThreaded(r, p, we);
+//		List<EnergyPoint> energyCloud = createEnergyCloudThreadedLoop(r, p, we);
 		
 		int numFeasibleSol = energyCloud.size();
 		int numPoint = 0;
@@ -685,6 +693,177 @@ public class Map3D extends Applet{
 		}
 
 		return energyCloud;
+
+	}
+	
+	private List<EnergyPoint> createEnergyCloudThreaded(Robot r, Path p, WorkingEnvelope we) {
+
+		/*
+		 * It creates a 3D matrix with energy values for every single starting
+		 * position inside the working envelope
+		 */
+
+		double[] currPos = new double[3];
+		double[][] inPosH = new double[4][4];
+		double[][] finPosH = new double[4][4];
+		
+		List<Point3D> weList = we.getWeList();
+		List<Future<EnergyPoint>> energyCloud = new LinkedList<Future<EnergyPoint>>();
+		List<EnergyPoint> energyCloudFinal = new LinkedList<EnergyPoint>();
+
+		Target[] targets = p.getPathPositions();
+
+		inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
+		finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+
+		/*
+		 * Here I initialize the OnlinePlanner to then create a thread each
+		 * iteration of the following loops
+		 */
+		ExecutorService execs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		
+
+		for(Point3D point : weList){
+
+					Target[] curr = new Target[2];
+					curr[0] = new Target(inPosH);
+					curr[1] = new Target(finPosH);
+
+					targets[0].setHomMatrix(inPosH);
+					targets[1].setHomMatrix(finPosH);
+
+					currPos = Matrix.copyVector(point.getPosition());
+
+//					System.out.println("currPos = ");
+//					Matrix.displayVector(currPos);
+
+					curr[0].translateTarget(currPos);
+					curr[1].translateTarget(currPos);
+
+//					System.out.println("Current initial position: ");
+//					Matrix.displayMatrix(curr[0].getHomMatrix());
+
+//					System.out.println("Current final position: ");
+//					Matrix.displayMatrix(curr[1].getHomMatrix());
+
+					/*
+					 * Here I create the thread to calculate the energy value
+					 * with current initial and final position
+					 */
+					
+//					dynSolution.run(curr[0], curr[1], point);
+					
+					Future<EnergyPoint> result = execs.submit(new OnlinePlannerCallable(curr[0], curr[1], r, point));
+					
+					
+					energyCloud.add(result);
+
+					/*
+					 * Every time the Online Planner calculates an energy value
+					 * it stores it in energyList. In order to get the current
+					 * energy value I have to "ask" for the last element added
+					 * to the list
+					 */
+//					double energy = dynSolution.getEnergyList().get(dynSolution.getEnergyList().size() - 1).getEnergy();
+//					
+//					if(energy != 0.0){
+//						
+//					EnergyPoint ep = new EnergyPoint();
+//					
+//					ep.setPosition(point.getPosition());
+//					ep.setEnergy(energy);
+//					
+//					energyCloudFinal.add(ep);
+//					
+//					}
+		}
+
+		
+		execs.shutdown();
+		
+		int i = 0;
+		for(Point3D point : weList){
+			try {
+				if(energyCloud.get(i).get().getEnergy() != 0.0){
+				energyCloudFinal.add(energyCloud.get(i).get());
+				}
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			i++;
+		}
+		return energyCloudFinal;
+		
+
+	}
+	
+	private List<EnergyPoint> createEnergyCloudThreadedLoop(Robot r, Path p, WorkingEnvelope we) {
+
+		/*
+		 * It creates a 3D matrix with energy values for every single starting
+		 * position inside the working envelope
+		 */
+
+		double[] currPos = new double[3];
+		double[][] inPosH = new double[4][4];
+		double[][] finPosH = new double[4][4];
+		
+		List<Point3D> weList = we.getWeList();
+	
+		List<EnergyPoint> energyCloudFinal = new LinkedList<EnergyPoint>();
+
+		Target[] targets = p.getPathPositions();
+
+		inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
+		finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+
+		/*
+		 * Here I initialize the OnlinePlanner to then create a thread each
+		 * iteration of the following loops
+		 */
+		int numberOfThreads = Runtime.getRuntime().availableProcessors();
+		int portion = weList.size()/numberOfThreads;
+		List<Thread> threads = new LinkedList<Thread>();
+		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
+//		ExecutorService execs = Executors.newFixedThreadPool(numberOfThreads);
+		
+		for(int i = 0; i < numberOfThreads; i++){
+			int from = i*portion;
+			int to = i < numberOfThreads-1 ? (i+1)*portion : weList.size();
+			
+			OnlinePlanner planner = new OnlinePlanner(p, r, weList.subList(from, to-1));
+			Thread thread = new Thread( planner );
+			planners.add(planner);
+			threads.add(thread);
+		}
+		
+		for(Thread currThread : threads){
+			currThread.start();
+		}
+		
+		for(Thread currThread : threads){
+			try {
+				currThread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		for(OnlinePlanner elem : planners){
+			for(EnergyPoint point : elem.getEnergyList()){
+				if(point.getEnergy() != 0.0){
+					energyCloudFinal.add(point);
+				}
+			}
+		}
+
+		return energyCloudFinal;
+		
 
 	}
 
