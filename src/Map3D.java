@@ -5,6 +5,8 @@ import java.awt.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
+import javax.swing.*;
+
 import com.sun.j3d.utils.applet.MainFrame;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.PlatformGeometry;
@@ -16,6 +18,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.sun.glass.events.MouseEvent;
 import com.sun.j3d.loaders.Scene;
 
 import java.awt.event.KeyListener;
@@ -27,7 +30,10 @@ import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
 import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
 
 import java.util.*;
+
+import com.sun.j3d.utils.geometry.Primitive;
 import com.sun.j3d.utils.geometry.Sphere;
+import com.sun.j3d.utils.picking.PickResult;
 
 import org.jdesktop.j3d.loaders.vrml97.*;
 import com.sun.j3d.loaders.objectfile.ObjectFile;
@@ -49,7 +55,7 @@ import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
  * - to add description of values of energy according to color of the sphere.
  */
 
-public class Map3D extends Applet{
+public class Map3D extends JApplet{
 
 	private static final Comparator Comparator = null;
 	/*
@@ -88,6 +94,12 @@ public class Map3D extends Applet{
 	}
 
 	public static void main(String[] args) {
+		
+//		JProgressBar progressBar = new JProgressBar(0, 100);
+//		progressBar.setValue(0);
+//        progressBar.setStringPainted(true);
+//		JApplet applet = new JApplet();
+//		applet.add(progressBar);
 
 		/*
 		 * TEST
@@ -141,7 +153,7 @@ public class Map3D extends Applet{
 		
 		time = System.currentTimeMillis() - time;
 		
-		System.out.println("Time: " + time/1000 + " sec");
+		System.out.println("Overall time: " + time/1000 + " sec");
 
 
 	}
@@ -152,11 +164,12 @@ public class Map3D extends Applet{
 		 * It adds all the objects to the world: 
 		 * - energy point cloud; 
 		 * - robot model;
+		 * - reference frame.
 		 */
 		
 //		List<EnergyPoint> energyCloud = createEnergyCloud(r, p, we);
-		List<EnergyPoint> energyCloud = createEnergyCloudThreaded(r, p, we);
-//		List<EnergyPoint> energyCloud = createEnergyCloudThreadedLoop(r, p, we);
+//		List<EnergyPoint> energyCloud = createEnergyCloudThreaded(r, p, we);
+		List<EnergyPoint> energyCloud = createEnergyCloudThreadedLoop(r, p, we);
 		
 		int numFeasibleSol = energyCloud.size();
 		int numPoint = 0;
@@ -210,7 +223,6 @@ public class Map3D extends Applet{
 		for(EnergyPoint ep : energyCloud)
 			rotObj.addChild(energyPoint(ep));
 
-
 		/*
 		 * Here I call the method robotModel to add the robot to the branch
 		 */
@@ -252,6 +264,8 @@ public class Map3D extends Applet{
 	}
 	
 	private void computeEnergyColors(List<EnergyPoint> energyCloud, int numClusters) {
+		
+		long time = System.currentTimeMillis();
 		
 		int[][] B = new int[numClusters + 1][energyCloud.size() + 1];
 		
@@ -321,6 +335,11 @@ public class Map3D extends Applet{
         	energyCloud.get(i).setColor(color);
         	
         }
+        
+        time = System.currentTimeMillis() - time;
+		
+		System.out.println("Time for computing clustering: " + time/1000 + " sec");
+
 		
 	}
 	
@@ -703,6 +722,8 @@ public class Map3D extends Applet{
 		 * position inside the working envelope
 		 */
 
+		long time = System.currentTimeMillis();
+		
 		double[] currPos = new double[3];
 		double[][] inPosH = new double[4][4];
 		double[][] finPosH = new double[4][4];
@@ -715,14 +736,14 @@ public class Map3D extends Applet{
 
 		inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
 		finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+		
 
 		/*
 		 * Here I initialize the OnlinePlanner to then create a thread each
 		 * iteration of the following loops
 		 */
 		ExecutorService execs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		
-
+	
 		for(Point3D point : weList){
 
 					Target[] curr = new Target[2];
@@ -752,9 +773,9 @@ public class Map3D extends Applet{
 					 */
 					
 //					dynSolution.run(curr[0], curr[1], point);
+					OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
 					
-					Future<EnergyPoint> result = execs.submit(new OnlinePlannerCallable(curr[0], curr[1], r, point));
-					
+					Future<EnergyPoint> result = execs.submit(thread);
 					
 					energyCloud.add(result);
 
@@ -776,8 +797,8 @@ public class Map3D extends Applet{
 //					energyCloudFinal.add(ep);
 //					
 //					}
+	
 		}
-
 		
 		execs.shutdown();
 		
@@ -796,6 +817,11 @@ public class Map3D extends Applet{
 			}
 			i++;
 		}
+		
+        time = System.currentTimeMillis() - time;
+		
+		System.out.println("Time for calculating energy values: " + time/1000 + " sec");
+		
 		return energyCloudFinal;
 		
 
@@ -808,6 +834,21 @@ public class Map3D extends Applet{
 		 * position inside the working envelope
 		 */
 
+		/*
+		 * PROGRESS BAR
+		 */
+		JFrame f = new JFrame("Processing...");
+	    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    Container content = f.getContentPane();
+	    JProgressBar progressBar = new JProgressBar(0, 100);
+	    progressBar.setValue(0);
+	    progressBar.setStringPainted(true);
+	    content.add(progressBar, BorderLayout.CENTER);
+	    f.setSize(400, 100);
+	    f.setVisible(true);
+	    
+	    long time = System.currentTimeMillis();
+		
 		double[] currPos = new double[3];
 		double[][] inPosH = new double[4][4];
 		double[][] finPosH = new double[4][4];
@@ -827,6 +868,8 @@ public class Map3D extends Applet{
 		 */
 		int numberOfThreads = Runtime.getRuntime().availableProcessors();
 		int portion = weList.size()/numberOfThreads;
+		int progress = 0;
+		int dProgress = 100/numberOfThreads;
 		List<Thread> threads = new LinkedList<Thread>();
 		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
 //		ExecutorService execs = Executors.newFixedThreadPool(numberOfThreads);
@@ -848,11 +891,19 @@ public class Map3D extends Applet{
 		for(Thread currThread : threads){
 			try {
 				currThread.join();
-			} catch (InterruptedException e) {
+				if(currThread.getState() == Thread.State.TERMINATED){
+					System.out.println("Thread is terminated.");
+					progress += dProgress;			
+					progressBar.setValue(progress);
+					progressBar.setStringPainted(true);
+					progressBar.paint(progressBar.getGraphics());
+						}
+				}
+			 catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+	}
 		
 		for(OnlinePlanner elem : planners){
 			for(EnergyPoint point : elem.getEnergyList()){
@@ -861,6 +912,9 @@ public class Map3D extends Applet{
 				}
 			}
 		}
+		
+		time = System.currentTimeMillis() - time;
+		System.out.println("Time for calculating energy values: " + time/1000 + " sec");
 
 		return energyCloudFinal;
 		
@@ -1071,9 +1125,7 @@ public class Map3D extends Applet{
 		return axisBG;
 
 	}
-
-
-
+	
 }
 
 
