@@ -14,7 +14,7 @@ public class Path {
  */
 	protected Target initialPosition;
 	protected Target finalPosition;
-	protected Trajectory interpolatedPath; //the Trajectory will have also the initial and 
+	protected Trajectory interpolatedPath = null; //the Trajectory will have also the initial and 
 										  // final position within of course.
 										  	
 	
@@ -376,7 +376,7 @@ public class Path {
 		return angles;
 	}
 	
-	private Quat4d rotmToQuat (double[][] matrix){
+	public static Quat4d rotmToQuat (double[][] matrix){
 		
 		double m00 = matrix[0][0];
 		double m01 = matrix[0][1];

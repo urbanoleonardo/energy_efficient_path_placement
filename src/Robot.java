@@ -180,41 +180,55 @@ public class Robot {
 			return T;
 		}
 
+		double c1 = Math.cos(joint_values[0]);
+		double s1 = Math.sin(joint_values[0]);
+		double c2 = Math.cos(joint_values[1]);
+		double s2 = Math.sin(joint_values[1]);
+		double c3 = Math.cos(joint_values[2]);
+		double s3 = Math.sin(joint_values[2]);
+		double c4 = Math.cos(joint_values[3]);
+		double s4 = Math.sin(joint_values[3]);
+		double c5 = Math.cos(joint_values[4]);
+		double s5 = Math.sin(joint_values[4]);
+		double c6 = Math.cos(joint_values[5]);
+		double s6 = Math.sin(joint_values[5]);
+		
+		
 
 		double[][] H0_1 = {
-				{Math.cos(joint_values[0]), -Math.sin(joint_values[0]), 0, 0},
-				{Math.sin(joint_values[0]), Math.cos(joint_values[0]), 0, 0},
+				{c1, -s1, 0, 0},
+				{s1, c1, 0, 0},
 				{0, 0, 1, this.linkLength[0][1]},
 				{0, 0, 0, 1}
 		};
 		double[][] H1_2 = {
-				{Math.cos(joint_values[1]), -Math.sin(joint_values[1]), 0, this.linkLength[1][0]},
+				{c2, -s2, 0, this.linkLength[1][0]},
 				{0, 0, -1, 0},
-				{Math.sin(joint_values[1]), Math.cos(joint_values[1]), 0, 0},
+				{s2, c2, 0, 0},
 				{0, 0, 0, 1}
 		};
 		double[][] H2_3 = {
-				{Math.cos(joint_values[2]), -Math.sin(joint_values[2]), 0, 0},
-				{Math.sin(joint_values[2]), Math.cos(joint_values[2]), 0, this.linkLength[2][1]},
+				{c3, -s3, 0, 0},
+				{s3, c3, 0, this.linkLength[2][1]},
 				{0, 0, 1, 0},
 				{0, 0, 0, 1}
 		};
 		double[][] H3_4 = {
 				{0, 0, 1, this.linkLength[3][0] + this.linkLength[4][0]},
-				{Math.sin(joint_values[3]), Math.cos(joint_values[3]), 0, 0},
-				{-Math.cos(joint_values[3]), Math.sin(joint_values[3]), 0, 0},
+				{s4, c4, 0, 0},
+				{-c4, s4, 0, 0},
 				{0, 0, 0, 1}
 		};
 		double[][] H4_5 = {
 				{0, 0, -1, 0},
-				{Math.sin(joint_values[4]), Math.cos(joint_values[4]), 0, 0},
-				{Math.cos(joint_values[4]), -Math.sin(joint_values[4]), 0, 0},
+				{s5, c5, 0, 0},
+				{c5, -s5, 0, 0},
 				{0, 0, 0, 1}
 		};
 		double[][] H5_6 = {
 				{0, 0, 1, 0},
-				{Math.sin(joint_values[5]), Math.cos(joint_values[5]), 0, 0},
-				{-Math.cos(joint_values[5]), Math.sin(joint_values[5]), 0, 0},
+				{s6, c6, 0, 0},
+				{-c6, s6, 0, 0},
 				{0, 0, 0, 1}
 		};
 		double[][] H6_endEff = {

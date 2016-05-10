@@ -8,7 +8,7 @@ TO DO
 decide how to get the current position of the robot, so the starting point that is
 needed for the inverse kinematics. 
 */
-public class OnlinePlannerCallable implements Callable{
+public class OnlinePlannerCallable implements Callable<EnergyPoint>{
 
 	private Target currPosition;
 	private int targetsLength;
@@ -423,10 +423,12 @@ public class OnlinePlannerCallable implements Callable{
 //					Matrix.displayVector(prev_theta);
 //				}
 				
+				double dTime = (trajectory.timeInstants.get(i) - trajectory.timeInstants.get(i-1));
+				double invDTime = 1/dTime;
 				
 				for(int j = 0; j < 6; j++){ 
-					dtheta[j] = (theta[j] - prevTheta[j])/(trajectory.timeInstants.get(i) - trajectory.timeInstants.get(i-1));
-					ddtheta[j] = (dtheta[j] - prevDTheta[j])/(trajectory.timeInstants.get(i) - trajectory.timeInstants.get(i-1));
+					dtheta[j] = (theta[j] - prevTheta[j])*invDTime;
+					ddtheta[j] = (dtheta[j] - prevDTheta[j])*invDTime;
 				}
 				
 				
@@ -455,7 +457,7 @@ public class OnlinePlannerCallable implements Callable{
 //				System.out.println("");
 //				System.out.println("Power : " + power);
 				
-				energy += power*(trajectory.timeInstants.get(i)- trajectory.timeInstants.get(i-1));
+				energy += power*dTime;
 				
 				
 				
@@ -533,8 +535,7 @@ public class OnlinePlannerCallable implements Callable{
 		{
 			roti = (robot.hToFrom(i+1, i, theta)).getRotation();
 			roti = Matrix.transpose(roti);
-			double[] temp = Matrix.addMatrices(w1, Matrix.multiplyScalMatr(dtheta[i], z0)); // (w_0 + z0*dtheta(i))
-			w[i] = Matrix.multiplyMatrixVector(roti, temp); //R0_1' * (w_0 + z0*dtheta(i))
+//			double[] temp = Matrix.addMatrices(w1, Matrix.multiplyScalMatr(dtheta[i], z0)); // (w_0 + z0*dtheta(i))
 			
 			//FORMULA LIKE IN MATLAB
 			w[i] = Matrix.addMatrices(Matrix.multiplyMatrixVector(roti, w1), Matrix.multiplyScalMatr(dtheta[i], z0));
@@ -544,11 +545,10 @@ public class OnlinePlannerCallable implements Callable{
 			
 			for(int j = 0; j < 3; j++)
 			{
-				alpha[i][j] = alpha1[j] + z0[j] * ddtheta[i] + temp1[j];
+//				alpha[i][j] = alpha1[j] + z0[j] * ddtheta[i] + temp1[j];
 				
 				dw[i][j] = dw1[j] + z0[j]*ddtheta[i] + temp1[j];
-			}
-			alpha[i] = Matrix.multiplyMatrixVector(roti, alpha[i]);  
+			} 
 			
 			//FORMULA LIKE IN MATLAB
 			alpha[i] = Matrix.addMatrices(Matrix.multiplyMatrixVector(roti, alpha1), Matrix.addMatrices(temp1, Matrix.multiplyScalMatr(ddtheta[i], z0)));
@@ -571,19 +571,6 @@ public class OnlinePlannerCallable implements Callable{
 			accEndL[i] = Matrix.addMatrices(accEndL[i], temp4);
 		
 			
-			//FORMULAS AS ON THE BOOK
-			/*
-			    acc_endL[i] = Matrix.multiplyMatrixVector(rot_i, acc_endL1);
-				double[] temp4 = Matrix.addMatrices(Matrix.crossProduct(dw[i], r[i]), Matrix.crossProduct(w[i], c12));
-				acc_endL[i] = Matrix.addMatrices(acc_endL[i], temp4);
-			 
-				//MAYBE in this formula RC[i] has to be changed to rici[i]
-			 	acc_centerL[i] = Matrix.addMatrices(Matrix.addMatrices(acc_endL[i], Matrix.crossProduct(dw[i], rici[i])), Matrix.crossProduct(w[i], Matrix.crossProduct(w[i], rici[i])));
-			 */
-			 
-			
-			
-			
 			/*
 			 * Update the values for next iteration
 			 */
@@ -594,6 +581,8 @@ public class OnlinePlannerCallable implements Callable{
 			accEndL1[j] = accEndL[i][j];
 			accCenterL1[j] = accCenterL[i][j];
 			}
+			
+			
 		}
 		
 		
@@ -753,8 +742,9 @@ public class OnlinePlannerCallable implements Callable{
 		}
 		else
 		{
-			theta_3[0] = Math.atan2(Math.sqrt(1 - a*a), a);
-			theta_3[1] = Math.atan2(-Math.sqrt(1 - a*a), a);
+			double temp = Math.sqrt(1 - a*a);
+			theta_3[0] = Math.atan2(temp, a);
+			theta_3[1] = Math.atan2(-temp, a);
 			
 			theta_23[1] = theta_3;
 		}
@@ -843,9 +833,9 @@ public class OnlinePlannerCallable implements Callable{
 			}
 			else
 			{//theta_5 is NOT 0 and we can calculate the other angles
-				temp = Math.sin(theta_5[i]);
-				theta_4[i] = Math.atan2(R_zyz[0][2]/temp, -R_zyz[1][2]/temp);
-				theta_6[i] = Math.atan2(R_zyz[2][0]/temp, R_zyz[2][1]/temp);
+				temp = 1d/Math.sin(theta_5[i]);
+				theta_4[i] = Math.atan2(R_zyz[0][2]*temp, -R_zyz[1][2]*temp);
+				theta_6[i] = Math.atan2(R_zyz[2][0]*temp, R_zyz[2][1]*temp);
 			}
 		}
 		

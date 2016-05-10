@@ -9,23 +9,23 @@
             <a> 0 </a>
             <d> 0.4865 </d>
         </length>
-        <mass> 28.84604 </mass>
+        <mass> 101.19 </mass>
         <limit>
             <max>180</max>
             <min>-180</min>
         </limit>
         <CoG>
-            <x>-100.36</x>
-            <y>0.51</y>
-            <z>61.57</z>
+            <x>52.21</x>
+            <y>-11.66</y>
+            <z>343.52</z>
         </CoG>
         <InertiaTensor>
-            <elem_11>487956660.38</elem_11>
-            <elem_22>840946963.33</elem_22>
-            <elem_33>1252564127.05</elem_33>
-            <elem_12>-1354200.15</elem_12>
-            <elem_13>-40308648.65</elem_13>
-            <elem_23>1076754.76</elem_23>
+            <elem_11>5563518283.82</elem_11>
+            <elem_22>6189640379.09</elem_22>
+            <elem_33>1077054569</elem_33>
+            <elem_12>-89932245.27</elem_12>
+            <elem_13>985360068.87</elem_13>
+            <elem_23>-254295121.77</elem_23>
         </InertiaTensor>
 	<speedLimit>180</speedLimit>
     </link>
@@ -35,23 +35,23 @@
             <a> 0.150 </a>
             <d> 0 </d>
         </length>
-        <mass> 39.93658 </mass>
+        <mass> 26.40 </mass>
         <limit>
             <max>150</max>
             <min>-90</min>
         </limit>
         <CoG>
-            <x>52.21</x>
-            <y>-11.66</y>
-            <z>343.52</z>
+            <x>150.22</x>
+            <y>-182.74</y>
+            <z>790.55</z>
         </CoG>
         <InertiaTensor>
-            <elem_11>845335026.30</elem_11>
-            <elem_22>1368016779.63</elem_22>
-            <elem_33>962755324.62</elem_33>
-            <elem_12>-65619629.64</elem_12>
-            <elem_13>269066460.07</elem_13>
-            <elem_23>-94333661.23</elem_23>
+            <elem_11>7512145519.90</elem_11>
+            <elem_22>7406325922.41</elem_22>
+            <elem_33>609163443.93</elem_33>
+            <elem_12>-286016666.48</elem_12>
+            <elem_13>1238294702.08</elem_13>
+            <elem_23>-1471045753.23</elem_23>
         </InertiaTensor>
 	<speedLimit>180</speedLimit>
     </link>
@@ -61,23 +61,23 @@
             <a> 0 </a>
             <d> 0.700 </d>
         </length>
-        <mass> 10.42111 </mass>
+        <mass> 41.45 </mass>
         <limit>
             <max>65</max>
             <min>-245</min>
         </limit>
         <CoG>
-            <x>150.22</x>
-            <y>-182.74</y>
-            <z>790.55</z>
+            <x>170.92</x>
+            <y>18.39</y>
+            <z>1173.17</z>
         </CoG>
         <InertiaTensor>
-            <elem_11>651357157.47</elem_11>
-            <elem_22>658373175.38</elem_22>
-            <elem_33>26011452.63</elem_33>
-            <elem_12>49046.63</elem_12>
-            <elem_13>741888.25</elem_13>
-            <elem_23>34415023.09</elem_23>
+            <elem_11>22637780928.31</elem_11>
+            <elem_22>23255125541.02</elem_22>
+            <elem_33>746275116.08</elem_33>
+            <elem_12>43400672.29</elem_12>
+            <elem_13>3283308320.69</elem_13>
+            <elem_23>344352370.78</elem_23>
         </InertiaTensor>
 	<speedLimit>185</speedLimit>
     </link>
@@ -87,23 +87,23 @@
             <a> 0.300 </a>
             <d> 0 </d>
         </length>
-        <mass> 16.35996 </mass>
+        <mass> 7.3159 </mass>
         <limit>
             <max>200</max>
             <min>-200</min>
         </limit>
         <CoG>
-            <x>170.92</x>
-            <y>18.39</y>
-            <z>1173.17</z>
+            <x>628.62</x>
+            <y>-0.66</y>
+            <z>1186.67</z>
         </CoG>
         <InertiaTensor>
-            <elem_11>115413697.87</elem_11>
-            <elem_22>260341771.01</elem_22>
-            <elem_33>262789182.65</elem_33>
-            <elem_12>-8031955.90</elem_12>
-            <elem_13>2767519.01</elem_13>
-            <elem_23>-8668654.05</elem_23>
+            <elem_11>4070604865.57</elem_11>
+            <elem_22>5233245249.76</elem_22>
+            <elem_33>1168317522.60</elem_33>
+            <elem_12>-1552673.10</elem_12>
+            <elem_13>2153845193.07</elem_13>
+            <elem_23>-2267020.69</elem_23>
         </InertiaTensor>
 	<speedLimit>385</speedLimit>
     </link>
@@ -113,33 +113,33 @@
             <a> 0.300 </a>
             <d> 0 </d>
         </length>
-        <mass> 2.88729 </mass>
+        <mass> 0.4599 </mass>
         <limit>
             <max>115</max>
             <min>-115</min>
         </limit>
         <CoG>
-            <x>628.62</x>
-            <y>-0.66</y>
-            <z>1186.67</z>
+            <x>750.00</x>
+            <y>0.00</y>
+            <z>1186.50</z>
         </CoG>
         <InertiaTensor>
-            <elem_11>4765908.33</elem_11>
-            <elem_22>26471445.50</elem_22>
-            <elem_33>27380153.25</elem_33>
-            <elem_12>-353127.63</elem_12>
-            <elem_13>43661.49</elem_13>
-            <elem_23>-2579.36</elem_23>
+            <elem_11>255661646.38</elem_11>
+            <elem_22>357799578.98</elem_22>
+            <elem_33>102202554.67</elem_33>
+            <elem_12>274.02</elem_12>
+            <elem_13>161531776.13</elem_13>
+            <elem_23>433.45</elem_23>
         </InertiaTensor>
 	<speedLimit>400</speedLimit>
     </link>
     <link>
         <number> 6 </number>
         <length>
-            <a> 0.065 </a>
+            <a> 0.08 </a>
             <d> 0 </d>
         </length>
-        <mass> 0.18152 </mass>
+        <mass> 0.03215 </mass>
         <limit>
             <max>400</max>
             <min>-400</min>
@@ -150,12 +150,12 @@
             <z>1186.50</z>
         </CoG>
         <InertiaTensor>
-            <elem_11>118375.95</elem_11>
-            <elem_22>150255.61</elem_22>
-            <elem_33>96501.72</elem_33>
-            <elem_12>0.04</elem_12>
-            <elem_13>0.00</elem_13>
-            <elem_23>0.01</elem_23>
+            <elem_11>45254162.89</elem_11>
+            <elem_22>65692111.03</elem_22>
+            <elem_33>20444281.85</elem_33>
+            <elem_12>51.25</elem_12>
+            <elem_13>30404050.97</elem_13>
+            <elem_23>76.28</elem_23>
         </InertiaTensor>
 	<speedLimit>460</speedLimit>
     </link>

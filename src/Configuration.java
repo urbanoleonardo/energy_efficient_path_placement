@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 
 /*
  * TODO it will be necessary to address the problem that arises when the robot has more or less
@@ -6,32 +8,56 @@
  * 
  */
 public class Configuration {
-private float[] joints_values;
+	private List<Double> jointValues;
 
-public Configuration(int DOF)
-{
-	this.joints_values = new float[DOF];
+	public Configuration()
+	{
+		this.jointValues = new ArrayList<Double>();
+
+	}
+	public Configuration(float[] joints_values)
+	{
+		int length = joints_values.length;
+
+		for(int i = 0; i < length; i++)
+		{
+			this.jointValues.add((double) joints_values[i]);
+		}
+	}
+
+	public Configuration(double[] joints_values)
+	{
+		int length = joints_values.length;
+
+		for(int i = 0; i < length; i++)
+		{
+			this.jointValues.add(joints_values[i]);
+		}
+	}
+
+	public Configuration(List<Double> joints_values)
+	{
+		this.jointValues.addAll(joints_values);
+
+	}
+
+	public List<Double> getJointValues(){
+		return this.jointValues;
+	}
 	
-}
-public Configuration(float[] joints_values, int DOF)
-{
-	int length = joints_values.length;
-	if(length > DOF)
-	{
-		System.out.println("More joints values than the actual degrees of freedom specified have been given.");
-		
+	public double getJointValue(int jointNumber){
+		return this.jointValues.get(jointNumber-1);
 	}
-	for(int i = 0; i < length; i++)
-	{
-		this.joints_values[i] = joints_values[i];
+	
+	public void setJointValue(int jointNumber, double jointValue){
+		this.jointValues.set(jointNumber-1, jointValue);
 	}
-}
-
-private void Limitation() //Does it have to be in ROBOT class or not?
-{
-	/*
-	 * TODO
-	 */
-}
+	
+	private void Limitation() //Does it have to be in ROBOT class or not?
+	{
+		/*
+		 * TODO
+		 */
+	}
 
 }

@@ -26,15 +26,15 @@ public class SquarePath extends Path{
 	}
 	
 	public SquarePath(Target point1, Target point2, Target point3, Target point4,  double tSample, double xSample){
-		super(point1, point2, tSample, xSample);
-		this.vertex1 = point3;
-		this.vertex2 = point4;
+		super(point1, point4, tSample, xSample);
+		this.vertex1 = point2;
+		this.vertex2 = point3;
 	}
 	
 	public SquarePath(Target point1, Target point2, Target point3, Target point4){
-		super(point1, point2);
-		this.vertex1 = point3;
-		this.vertex2 = point4;
+		super(point1, point4);
+		this.vertex1 = point2;
+		this.vertex2 = point3;
 	}
 	
 	public Target getVertex1() {
