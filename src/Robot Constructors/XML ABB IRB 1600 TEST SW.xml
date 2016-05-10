@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot>
+    <DOF>
+        6
+    </DOF>
+    <link>
+        <number>1</number>
+        <length>
+            <a> 0 </a>
+            <d> 0.4865 </d>
+        </length>
+        <mass> 313.5015 </mass>
+        <limit>
+            <max>180</max>
+            <min>-180</min>
+        </limit>
+        <CoG>
+            <x>52.2</x>
+            <y>-11.7</y>
+            <z>343.5</z>
+        </CoG>
+        <InertiaTensor>
+            <elem_11>43673618988.1</elem_11>
+            <elem_22>48588622870.6</elem_22>
+            <elem_33>8454828242.9</elem_33>
+            <elem_12>-705954807.8</elem_12>
+            <elem_13>7735038185.8</elem_13>
+            <elem_23>-1996205944.0</elem_23>
+        </InertiaTensor>
+	<speedLimit>180</speedLimit>
+    </link>
+    <link>
+        <number> 2 </number>
+        <length>
+            <a> 0.150 </a>
+            <d> 0 </d>
+        </length>
+        <mass> 81.805 </mass>
+        <limit>
+            <max>150</max>
+            <min>-90</min>
+        </limit>
+        <CoG>
+            <x>150.2</x>
+            <y>-182.7</y>
+            <z>790.5</z>
+        </CoG>
+        <InertiaTensor>
+            <elem_11>58969606968.3</elem_11>
+            <elem_22>58138914600.0</elem_22>
+            <elem_33>4781902330.4</elem_33>
+            <elem_12>-2245218623.3</elem_12>
+            <elem_13>9720511742.1</elem_13>
+            <elem_23>-11547619886.8</elem_23>
+        </InertiaTensor>
+	<speedLimit>180</speedLimit>
+    </link>
+    <link>
+        <number> 3 </number>
+        <length>
+            <a> 0 </a>
+            <d> 0.700 </d>
+        </length>
+        <mass> 128.4257 </mass>
+        <limit>
+            <max>65</max>
+            <min>-245</min>
+        </limit>
+        <CoG>
+            <x>170.9</x>
+            <y>18.4</y>
+            <z>1173.2</z>
+        </CoG>
+        <InertiaTensor>
+            <elem_11>177706611072.2</elem_11>
+            <elem_22>182552766092.6</elem_22>
+            <elem_33>5858260109.2</elem_33>
+            <elem_12>340695273.0</elem_12>
+            <elem_13>25773970880.0</elem_13>
+            <elem_23>2703164630.3</elem_23>
+        </InertiaTensor>
+	<speedLimit>185</speedLimit>
+    </link>
+    <link>
+        <number> 4 </number>
+        <length>
+            <a> 0.300 </a>
+            <d> 0 </d>
+        </length>
+        <mass> 22.6653 </mass>
+        <limit>
+            <max>200</max>
+            <min>-200</min>
+        </limit>
+        <CoG>
+            <x>628.6</x>
+            <y>-0.7</y>
+            <z>1186.7</z>
+        </CoG>
+        <InertiaTensor>
+            <elem_11>31954247747.0</elem_11>
+            <elem_22>41080974645.0</elem_22>
+            <elem_33>9171292432.6</elem_33>
+            <elem_12>-12188482.1</elem_12>
+            <elem_13>16907684535.1</elem_13>
+            <elem_23>-17796108.9</elem_23>
+        </InertiaTensor>
+	<speedLimit>385</speedLimit>
+    </link>
+    <link>
+        <number> 5 </number>
+        <length>
+            <a> 0.300 </a>
+            <d> 0 </d>
+        </length>
+        <mass> 1.4249 </mass>
+        <limit>
+            <max>115</max>
+            <min>-115</min>
+        </limit>
+        <CoG>
+            <x>750.0</x>
+            <y>0.0</y>
+            <z>1186.5</z>
+        </CoG>
+        <InertiaTensor>
+            <elem_11>2006944451.0</elem_11>
+            <elem_22>2808727431.9</elem_22>
+            <elem_33>802290265.8</elem_33>
+            <elem_12>2135.6</elem_12>
+            <elem_13>1268024775.6</elem_13>
+            <elem_23>3378.1</elem_23>
+        </InertiaTensor>
+	<speedLimit>400</speedLimit>
+    </link>
+    <link>
+        <number> 6 </number>
+        <length>
+            <a> 0.065 </a>
+            <d> 0 </d>
+        </length>
+        <mass> 0.252 </mass>
+        <limit>
+            <max>400</max>
+            <min>-400</min>
+        </limit>
+        <CoG>
+            <x>797.1</x>
+            <y>0.00</y>
+            <z>1186.3</z>
+        </CoG>
+        <InertiaTensor>
+            <elem_11>355245180.2</elem_11>
+            <elem_22>515683073.0</elem_22>
+            <elem_33>160487612.5</elem_33>
+            <elem_12>402.4</elem_12>
+            <elem_13>238671800.6</elem_13>
+            <elem_23>598.8</elem_23>
+        </InertiaTensor>
+	<speedLimit>460</speedLimit>
+    </link>
+</robot>
