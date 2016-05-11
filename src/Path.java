@@ -425,7 +425,7 @@ public class Path {
 		
 	}
 	
-	private double[][] quatToRotm (Quat4d q){
+	public static double[][] quatToRotm (Quat4d q){
 		double[][] rotm = new double[3][3];
 		
 		    double sqw = q.w*q.w;
