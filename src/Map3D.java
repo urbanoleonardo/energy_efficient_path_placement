@@ -144,6 +144,30 @@ public class Map3D extends MouseAdapter{
 		}
 
 	}
+	
+	public Map3D(String xmlFilePath, List<EnergyPoint> energyList){
+		double distanceView = 110;
+		double[] centerView = { -0.1, 0.45, 3.5 };
+
+		Robot r = new Robot(xmlFilePath, true);
+		
+		setLayout(new BorderLayout());
+		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+		canvas = new Canvas3D(config);
+		add("North", new Label(""));
+		add("Center", canvas);
+		add("South", new Label(""));
+
+		u = new SimpleUniverse(canvas);
+
+		BranchGroup scene = createSceneGraph(energyList);
+		System.out.println("End creating SceneGraph");
+
+		u.getViewingPlatform().getViewPlatformTransform().setTransform(setView(centerView, distanceView));
+
+		u.addBranchGraph(scene);
+		System.out.println("End of Map3D");
+	}
 
 	public static void main(String[] args) {
 
@@ -285,6 +309,57 @@ public class Map3D extends MouseAdapter{
 
 	}
 
+	private BranchGroup createSceneGraph( List<EnergyPoint> energyCloud) {
+		int numFeasibleSol = energyCloud.size();
+		int numPoint = 0;
+
+		float[] energyColor = new float[3];
+
+		double[] CenterOfWorld = {0.0, 0.0, 0.0};
+		double[] currPos = new double[3];
+
+		BranchGroup objRoot = new BranchGroup();
+		TransformGroup cow = new TransformGroup();
+		TransformGroup rotObj = new TransformGroup();
+		Transform3D rot = new Transform3D();
+		rot.rotX(-Math.PI/2);
+		rotObj.setTransform(rot);
+		cow.addChild(rotObj);
+		cow.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+		objRoot.addChild(cow);
+
+		
+	    OrbitBehavior ob = new OrbitBehavior(u.getCanvas());
+	    ob.setReverseRotate(true);
+	    ob.setReverseTranslate(true);
+	    ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
+	    u.getViewingPlatform().setViewPlatformBehavior(ob);
+		
+		int numClusters = 11;
+		computeEnergyColors(energyCloud, numClusters);
+		
+		for(EnergyPoint ep : energyCloud)
+			rotObj.addChild(energyPoint(ep));
+
+		/*
+		 * Here I call the method robotModel to add the robot to the branch
+		 */
+
+		rotObj.addChild(robotModel());
+
+		rotObj.addChild(axis());
+
+		/*
+		 * Finally, I set the Lights
+		 */
+
+		objRoot.addChild(setLight());
+
+		System.out.println("Number of feasible solutions: " + numFeasibleSol );
+
+		return objRoot;
+	}
+	
 	private class Result{
 
 		int numClusters;
