@@ -151,19 +151,19 @@ public class Map3D extends MouseAdapter{
 
 		Robot r = new Robot(xmlFilePath, true);
 		
-		setLayout(new BorderLayout());
+//		setLayout(new BorderLayout());
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 		canvas = new Canvas3D(config);
-		add("North", new Label(""));
-		add("Center", canvas);
-		add("South", new Label(""));
+//		add("North", new Label(""));
+//		add("Center", canvas);
+//		add("South", new Label(""));
 
 		u = new SimpleUniverse(canvas);
 
 		BranchGroup scene = createSceneGraph(energyList);
 		System.out.println("End creating SceneGraph");
 
-		u.getViewingPlatform().getViewPlatformTransform().setTransform(setView(centerView, distanceView));
+		u.getViewingPlatform().getViewPlatformTransform().setTransform(setView());
 
 		u.addBranchGraph(scene);
 		System.out.println("End of Map3D");
@@ -353,7 +353,9 @@ public class Map3D extends MouseAdapter{
 		 * Finally, I set the Lights
 		 */
 
-		objRoot.addChild(setLight());
+		objRoot.addChild(setDirectionalLight(new Vector3f(1.0f, 1.0f, 1.0f)));
+		objRoot.addChild(setDirectionalLight(new Vector3f(-1.0f, 1.0f, -1.0f)));
+		objRoot.addChild(setDirectionalLight(new Vector3f(-1.0f, -1.0f, 1.0f)));
 
 		System.out.println("Number of feasible solutions: " + numFeasibleSol );
 
