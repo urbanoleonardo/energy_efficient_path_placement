@@ -49,7 +49,7 @@ public class WorkingEnvelope {
 
 		resolution = 5 / 100.0;
 		
-		weList = buildWeList();
+//		weList = buildWeList();
 
 	}
 
@@ -69,7 +69,7 @@ public class WorkingEnvelope {
 
 		resolution = 5 / 100.0;
 		
-		weList = buildWeList();
+//		weList = buildWeList();
 
 	}
 
@@ -122,7 +122,7 @@ public class WorkingEnvelope {
 
 			resolution = r;
 		
-		weList = buildWeList();
+//		weList = buildWeList();
 
 	}
 
@@ -210,7 +210,7 @@ public class WorkingEnvelope {
 						weList.add(p);
 						
 					}
-
+		
 		return weList;
 
 	}
