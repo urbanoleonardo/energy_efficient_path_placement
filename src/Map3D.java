@@ -123,7 +123,8 @@ public class Map3D extends MouseAdapter{
 
 					}
 				}
-
+				
+				System.out.println("");
 				System.out.println("CURRENT INITIAL POSITION");
 				System.out.println("x = " + h[3] + " y = " + h[7] + " z = " + h[11]);
 				System.out.println("CURRENT ENERGY CONSUMPTION: " + energy + " J");
@@ -151,14 +152,16 @@ public class Map3D extends MouseAdapter{
 
 		Robot r = new Robot(xmlFilePath, true);
 		
-//		setLayout(new BorderLayout());
+		Frame frame = new Frame("Map3D");
+
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 		canvas = new Canvas3D(config);
-//		add("North", new Label(""));
-//		add("Center", canvas);
-//		add("South", new Label(""));
+		canvas.setSize(400, 400);
 
 		u = new SimpleUniverse(canvas);
+		
+
+		
 
 		BranchGroup scene = createSceneGraph(energyList);
 		System.out.println("End creating SceneGraph");
@@ -166,6 +169,29 @@ public class Map3D extends MouseAdapter{
 		u.getViewingPlatform().getViewPlatformTransform().setTransform(setView());
 
 		u.addBranchGraph(scene);
+		
+		frame.addWindowListener(new WindowAdapter() {
+
+			public void windowClosing(WindowEvent winEvent) {
+
+				System.exit(0);
+
+			}
+
+		});
+		
+		frame.add(canvas);
+		
+		pickCanvas = new PickCanvas(canvas, scene);
+
+		pickCanvas.setMode(PickCanvas.GEOMETRY);
+
+		canvas.addMouseListener(this);
+
+		frame.pack();
+
+		frame.show();
+		
 		System.out.println("End of Map3D");
 	}
 
@@ -261,7 +287,7 @@ public class Map3D extends MouseAdapter{
 		 */
 
 		//		List<EnergyPoint> energyCloud = createEnergyCloud(r, p, we);
-		//		List<EnergyPoint> energyCloud = createEnergyCloudThreaded(r, p, we);
+//		energyCloud = createEnergyCloudThreaded(r, p, we);
 		energyCloud = createEnergyCloudThreadedLoop(r, p, we);
 
 		int numFeasibleSol = energyCloud.size();
@@ -568,8 +594,8 @@ public class Map3D extends MouseAdapter{
 
 		TransformGroup tg = setPosition(ep.getPosition());
 
-		Sphere s = new Sphere(0.14f);
-
+//		Sphere s = new Sphere(0.14f);
+		Sphere s = new Sphere(0.04f);
 		/*
 		 * Setting the appearance of the sphere (color and transparency)
 		 */
@@ -738,6 +764,7 @@ public class Map3D extends MouseAdapter{
 
 			//					dynSolution.run(curr[0], curr[1], point);
 			OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
+//			Planner thread = new Planner(curr[0], curr[1], r, point);
 
 			Future<EnergyPoint> result = execs.submit(thread);
 
@@ -766,11 +793,11 @@ public class Map3D extends MouseAdapter{
 
 		execs.shutdown();
 
-		int i = 0;
-		for(Point3D point : weList){
+
+		for(Future<EnergyPoint> point : energyCloud){
 			try {
-				if(energyCloud.get(i).get().getEnergy() != 0.0){
-					energyCloudFinal.add(energyCloud.get(i).get());
+				if(point.get().getEnergy() != 0.0){
+					energyCloudFinal.add(point.get());
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -778,8 +805,8 @@ public class Map3D extends MouseAdapter{
 			} catch (ExecutionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				e.getCause();
 			}
-			i++;
 		}
 
 		time = System.currentTimeMillis() - time;
@@ -835,14 +862,15 @@ public class Map3D extends MouseAdapter{
 		int progress = 0;
 		int dProgress = 100/numberOfThreads;
 		List<Thread> threads = new LinkedList<Thread>();
-		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
-		//		ExecutorService execs = Executors.newFixedThreadPool(numberOfThreads);
+//		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
+		List<Planner> planners = new LinkedList<Planner>();
 
 		for(int i = 0; i < numberOfThreads; i++){
 			int from = i*portion;
 			int to = i < numberOfThreads-1 ? (i+1)*portion : weList.size();
 
-			OnlinePlanner planner = new OnlinePlanner(p, r, weList.subList(from, to-1));
+//			OnlinePlanner planner = new OnlinePlanner(p, r, weList.subList(from, to-1));
+			Planner planner = new Planner(p, r, weList.subList(from, to-1));
 			Thread thread = new Thread( planner );
 			planners.add(planner);
 			threads.add(thread);
@@ -871,14 +899,21 @@ public class Map3D extends MouseAdapter{
 			}
 		}
 
-		for(OnlinePlanner elem : planners){
+//		for(OnlinePlanner elem : planners){
+//			for(EnergyPoint point : elem.getEnergyList()){
+//				if(point.getEnergy() != 0.0){
+//					energyCloudFinal.add(point);
+//				}
+//			}
+//		}
+
+		for(Planner elem : planners){
 			for(EnergyPoint point : elem.getEnergyList()){
 				if(point.getEnergy() != 0.0){
 					energyCloudFinal.add(point);
 				}
 			}
 		}
-
 		energyCloudFinal.sort(null);
 
 		time = System.currentTimeMillis() - time;

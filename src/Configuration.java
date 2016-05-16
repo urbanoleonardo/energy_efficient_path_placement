@@ -17,6 +17,7 @@ public class Configuration {
 	}
 	public Configuration(float[] joints_values)
 	{
+		this.jointValues = new ArrayList<Double>();
 		int length = joints_values.length;
 
 		for(int i = 0; i < length; i++)
@@ -27,6 +28,7 @@ public class Configuration {
 
 	public Configuration(double[] joints_values)
 	{
+		this.jointValues = new ArrayList<Double>();
 		int length = joints_values.length;
 
 		for(int i = 0; i < length; i++)
@@ -35,29 +37,47 @@ public class Configuration {
 		}
 	}
 
-	public Configuration(List<Double> joints_values)
+	public Configuration(List<Double> jointValues)
 	{
-		this.jointValues.addAll(joints_values);
+		this.jointValues = new ArrayList<Double>();
+		this.jointValues.addAll(jointValues);
 
 	}
 
 	public List<Double> getJointValues(){
 		return this.jointValues;
 	}
-	
+
+	public int size(){
+		return this.jointValues.size();
+	}
+
 	public double getJointValue(int jointNumber){
 		return this.jointValues.get(jointNumber-1);
 	}
-	
+
 	public void setJointValue(int jointNumber, double jointValue){
-		this.jointValues.set(jointNumber-1, jointValue);
-	}
-	
-	private void Limitation() //Does it have to be in ROBOT class or not?
-	{
-		/*
-		 * TODO
-		 */
+
+		if(jointNumber > this.jointValues.size()){
+			this.jointValues.add(jointValue);
+		} else{
+			this.jointValues.set(jointNumber-1, jointValue);
+		}
+
 	}
 
+	public void setJointValue(List<Double> jointValues){
+
+		this.jointValues.addAll(jointValues);
+
+	}
+
+	public void setJointValue(double[] jointValues){
+		this.jointValues = new ArrayList<Double>();
+		
+		for(int i = 0; i < jointValues.length; i++){
+			this.jointValues.add(jointValues[i]);
+		}
+
+	}
 }
