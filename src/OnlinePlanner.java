@@ -338,7 +338,7 @@ public class OnlinePlanner implements Runnable{
 
 			error = onlineInvKinematics(pathTrajectory.points.get(j), j);
 		}
-
+		
 		long time2 = System.nanoTime();
 
 		//		|-----------|
@@ -600,7 +600,7 @@ public class OnlinePlanner implements Runnable{
 
 			if(energy < minEnergy){
 
-				//				System.out.println("Solution with energy: " + energy);
+//				System.out.println("Solution with energy: " + energy);
 
 				minEnergy = energy;
 				optDynSolution = dynSolutionVector;
@@ -611,9 +611,9 @@ public class OnlinePlanner implements Runnable{
 		EnergyPoint newPoint = new EnergyPoint(minEnergy);
 		this.energyList.add(newPoint);
 
-		System.out.println("Last sample of inverse dynamics took : " + (time2 - time1)/1E9 );
+//		System.out.println("Last sample of inverse dynamics took : " + (time2 - time1)/1E9 );
 		
-		this.writeSolutionToExcel(optKinSolution, optDynSolution, trajectory);
+//		this.writeSolutionToExcel(optKinSolution, optDynSolution, trajectory);
 	}
 
 	private double[] dynamicAnalysis(double[] theta, double[] dtheta, double[] ddtheta, double[] T, double[] f){
@@ -1388,18 +1388,14 @@ public class OnlinePlanner implements Runnable{
 		System.out.println("");
 		System.out.println("ThetaM of index " + index);
 
-		for(int i = 0; i < thetaM[0][0].length; i++){
-			if(i != index){
-				continue;
-			}
 
 			for(int j = 0; j < thetaM.length; j++){
 				for(int k = 0; k < thetaM[0].length; k++){
-					System.out.print(thetaM[j][k][i] + " ");
+					System.out.print(thetaM[j][k][index] + " ");
 				}
 				System.out.println(" ");
 			}
-		}
+		
 		System.out.println(" ");
 	}
 
