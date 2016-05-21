@@ -294,8 +294,8 @@ public class Map3D extends MouseAdapter{
 //		energyCloud = createEnergyCloudThreadedLoopNEW(r, p, we);
 
 		int numFeasibleSol = energyCloud.size();
-		int[] weSize = we.getSize();
-		int weSizeTot = weSize[0] * weSize[1] * weSize[2];
+		long[] weSize = we.getSize();
+		long weSizeTot = weSize[0] * weSize[1] * weSize[2];
 
 		BranchGroup objRoot = new BranchGroup();
 		TransformGroup cow = new TransformGroup();
@@ -641,7 +641,7 @@ public class Map3D extends MouseAdapter{
 
 		double weResolution = we.getResolution();
 		double[] weMinValues = we.getMinValues();
-		int[] weSize = we.getSize();
+		long[] weSize = we.getSize();
 
 		Target[] targets = p.getPathPositions();
 
@@ -989,11 +989,11 @@ public class Map3D extends MouseAdapter{
 		 */
 		int numberOfThreads = Runtime.getRuntime().availableProcessors();
 		int counter = 0;
-		int[] weSize = we.getSize();
+		long[] weSize = we.getSize();
 		double weResolution = we.getResolution();
 		double[] weMinValues = we.getMinValues();
-		int weSizeTot = weSize[0] + weSize[1] + weSize[2];
-		int portion = weSizeTot/numberOfThreads;
+		long weSizeTot = weSize[0] * weSize[1] * weSize[2];
+		int portion = (int) weSizeTot/numberOfThreads;
 
 		int progress = 0;
 		int dProgress = 100/numberOfThreads;
@@ -1082,6 +1082,151 @@ public class Map3D extends MouseAdapter{
 
 	}
 
+	private List<EnergyPoint> createEnergyCloudThreadedNEWNEW(Robot r, Path p, WorkingEnvelope we) {
+
+		/*
+		 * It creates a 3D matrix with energy values for every single starting
+		 * position inside the working envelope
+		 */
+
+		/*
+		 * PROGRESS BAR
+		 */
+		JFrame f = new JFrame("Processing...");
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		Container content = f.getContentPane();
+		JProgressBar progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);
+		content.add(progressBar, BorderLayout.CENTER);
+		f.setSize(400, 100);
+		f.setVisible(true);
+
+		long time = System.currentTimeMillis();
+
+		int[] index = new int[3];
+		long[] weSize = we.getSize();
+		long weSizeTot = weSize[0]*weSize[1]*weSize[2];
+		System.out.println("weSize: " + weSize[0] + " " + weSize[1] + " " +  weSize[2]);
+		System.out.println("weSizeTot: " + weSizeTot);
+		long dProgress = (weSize[0]*weSize[1]*weSize[2])/100;
+		System.out.println("dProgress = " + dProgress);
+		int progress = 0;
+		int counter = 0;
+		int portion = (int) weSizeTot/100;
+		int i;
+		int iteration = 1;
+
+		double weResolution = we.getResolution();
+		double[] weMinValues = we.getMinValues();
+		double[] currPos = new double[3];
+		double[][] inPosH = new double[4][4];
+		double[][] finPosH = new double[4][4];
+
+		BigDecimal[] buffer = new BigDecimal[3];
+		MathContext mt = new MathContext(2, RoundingMode.HALF_DOWN);
+
+		//		List<Future<EnergyPoint>> energyCloud = new LinkedList<Future<EnergyPoint>>();
+		List<Future<EnergyPoint>> energyCloud = new ArrayList<Future<EnergyPoint>>(portion);
+		List<EnergyPoint> energyCloudFinal = new LinkedList<EnergyPoint>();
+
+		Target[] targets = p.getPathPositions();
+
+		inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
+		finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+
+
+		/*
+		 * Here I initialize the OnlinePlanner to then create a thread each
+		 * iteration of the following loops
+		 */
+		ExecutorService execs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+		for (index[0] = 0; index[0] < weSize[0]; index[0]++)
+			for (index[1] = 0; index[1] < weSize[1]; index[1]++)
+				for (index[2] = 0; index[2] < weSize[2]; index[2]++){
+
+					for(int j = 0; j < 3; j++)					
+						buffer[j] = new BigDecimal(weMinValues[j] + index[j] * weResolution, mt);
+					
+					Point3D point = new Point3D(buffer[0].doubleValue(), buffer[1].doubleValue(), buffer[2].doubleValue());
+
+					Target[] curr = new Target[2];
+					curr[0] = new Target(inPosH);
+					curr[1] = new Target(finPosH);
+
+					targets[0].setHomMatrix(inPosH);
+					targets[1].setHomMatrix(finPosH);
+
+					currPos = Matrix.copyVector(point.getPosition());
+
+					curr[0].translateTarget(currPos);
+					curr[1].translateTarget(currPos);
+
+					OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
+
+					Future<EnergyPoint> result = execs.submit(thread);
+
+					energyCloud.add(counter, result);
+
+					if(counter < portion - 1){
+
+						counter++;
+						continue;
+
+					}
+					
+//					System.out.println("counter at the end of a list: " + counter);
+//					System.out.println("Size List Future EP: " + energyCloud.size());
+
+					execs.shutdown();
+					
+					counter = 0;
+
+					i = 0;
+					for(Future<EnergyPoint> ep : energyCloud){
+
+						try {
+							if(ep.get().getEnergy() != 0d){
+								energyCloudFinal.add(energyCloud.get(i).get());
+							}
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (ExecutionException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+						i++;
+
+					}
+
+					progress++;			
+					progressBar.setValue(progress);
+					progressBar.setStringPainted(true);
+					progressBar.paint(progressBar.getGraphics());
+					if(progress == 100)
+						f.setVisible(false);
+					
+					energyCloud = new ArrayList<Future<EnergyPoint>>(portion);
+					
+					if(iteration < weSizeTot)
+					execs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+
+				}
+
+		time = System.currentTimeMillis() - time;
+		
+		System.out.println("Size of energyCloudFinal = " + energyCloudFinal.size());
+
+		System.out.println("Time for calculating energy values: " + time/1000 + " sec");
+
+		return energyCloudFinal;
+
+
+	}
+	
 	private TransformGroup setPosition(double[] position) {
 
 		/*
