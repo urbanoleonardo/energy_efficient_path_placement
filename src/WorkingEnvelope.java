@@ -162,13 +162,13 @@ public class WorkingEnvelope {
 		
 	}
 
-	public int[] getSize() {
+	public long[] getSize() {
 
-		int[] size = new int[3];
+		long[] size = new long[3];
 		
-		size[0] = (int) (Math.ceil((this.xMax - this.xMin) / this.resolution) + 1);
-		size[1] = (int) (Math.ceil((this.yMax - this.yMin) / this.resolution) + 1);
-		size[2] = (int) (Math.ceil((this.zMax - this.zMin) / this.resolution) + 1);
+		size[0] = (long) (Math.ceil((this.xMax - this.xMin) / this.resolution) + 1);
+		size[1] = (long) (Math.ceil((this.yMax - this.yMin) / this.resolution) + 1);
+		size[2] = (long) (Math.ceil((this.zMax - this.zMin) / this.resolution) + 1);
 
 		return size;
 
@@ -181,7 +181,7 @@ public class WorkingEnvelope {
 		 * values of x, y, z for each point of the working envelope
 		 */
 
-		int[] size = this.getSize();
+		long[] size = this.getSize();
 		
 		List<Point3D> weList = new LinkedList<Point3D>();
 		

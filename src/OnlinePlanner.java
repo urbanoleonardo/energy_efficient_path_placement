@@ -2,15 +2,14 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+//import org.apache.poi.ss.usermodel.Row;
+//import org.apache.poi.ss.usermodel.Sheet;
+//import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 
 /*
@@ -613,7 +612,6 @@ public class OnlinePlanner implements Runnable{
 
 		System.out.println("Last sample of inverse dynamics took : " + (time2 - time1)/1E9 );
 		
-		this.writeSolutionToExcel(optKinSolution, optDynSolution, trajectory);
 	}
 
 	private double[] dynamicAnalysis(double[] theta, double[] dtheta, double[] ddtheta, double[] T, double[] f){
@@ -1419,86 +1417,5 @@ public class OnlinePlanner implements Runnable{
 		this.velocity = velocity;
 	}
 
-	public static void writeTrajectoryToExcel(Trajectory trajectory){
-		Workbook workbook = new XSSFWorkbook();
 
-		Sheet trajectorySheet = workbook.createSheet("Trajectory Data");
-
-		ArrayList<Target> points = trajectory.points;
-		ArrayList<Double> times = trajectory.timeInstants; 
-
-		int rowIndex = 0;
-
-		for(double time : times){
-			Row row = trajectorySheet.createRow(rowIndex++);
-			int cellIndex = 0;
-			//first place in row is name
-			row.createCell(cellIndex).setCellValue(time);
-//			row.createCell(cellIndex).setCellValue("ciao");
-			
-		}
-		//write this workbook in excel file.
-		try {
-			FileOutputStream fos = new FileOutputStream(FILE_PATH);
-			workbook.write(fos);
-			fos.close();
-
-			System.out.println(FILE_PATH + " is successfully written");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void writeSolutionToExcel(int[] kinSolution, double[][] dynSolution, Trajectory trajectory){
-		Workbook workbook = new XSSFWorkbook();
-
-		Sheet trajectorySheet = workbook.createSheet("Trajectory Data");
-
-		ArrayList<Target> points = trajectory.points;
-		ArrayList<Double> times = trajectory.timeInstants; 
-		
-		int rowIndex = 0;
-		int index = 0;
-
-		for(double time : times){
-			Row row = trajectorySheet.createRow(rowIndex++);
-			int cellIndex = 0;
-			//first place in row is name
-			row.createCell(cellIndex++).setCellValue(time);
-			
-			row.createCell(cellIndex++).setCellValue(this.thetaM[0][kinSolution[index]][index]);	//link 1
-			row.createCell(cellIndex++).setCellValue(dynSolution[index][0]);
-			
-			row.createCell(cellIndex++).setCellValue(this.thetaM[1][kinSolution[index]][index]);	//link 2
-			row.createCell(cellIndex++).setCellValue(dynSolution[index][1]);
-			
-			row.createCell(cellIndex++).setCellValue(this.thetaM[2][kinSolution[index]][index]);	//link 3
-			row.createCell(cellIndex++).setCellValue(dynSolution[index][2]);
-			
-			row.createCell(cellIndex++).setCellValue(this.thetaM[3][kinSolution[index]][index]);	//link 4
-			row.createCell(cellIndex++).setCellValue(dynSolution[index][3]);
-			
-			row.createCell(cellIndex++).setCellValue(this.thetaM[4][kinSolution[index]][index]);	//link 5
-			row.createCell(cellIndex++).setCellValue(dynSolution[index][4]);
-			
-			row.createCell(cellIndex++).setCellValue(this.thetaM[5][kinSolution[index]][index]);	//link 6
-			row.createCell(cellIndex++).setCellValue(dynSolution[index][5]);
-
-			index++;
-		}
-		//write this workbook in excel file.
-		try {
-			FileOutputStream fos = new FileOutputStream(FILE_PATH);
-			workbook.write(fos);
-			fos.close();
-
-			System.out.println(FILE_PATH + " is successfully written");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 }

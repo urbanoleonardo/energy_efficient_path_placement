@@ -499,7 +499,7 @@ public class OnlinePlannerCallable implements Callable<EnergyPoint>{
 				optKinSolution = solution;
 			}
 		}
-		System.out.println("The chosen solution was the one requiring " + minEnergy + " J. ");
+//		System.out.println("The chosen solution was the one requiring " + minEnergy + " J. ");
 		EnergyPoint newPoint = new EnergyPoint(minEnergy);
 		this.energyList.add(newPoint);
 	}
