@@ -260,7 +260,7 @@ public class Map3D extends MouseAdapter{
 		//		double res = 0.05;
 		double[] min = { -1.0, -1.0, 0.0 };
 		double[] max = { 1.0, 1.0, 1.0 };
-		double res = 0.02;
+		double res = 0.05;
 
 		long time = System.currentTimeMillis();
 
@@ -289,7 +289,7 @@ public class Map3D extends MouseAdapter{
 		 * - reference frame.
 		 */
 
-		energyCloud = createEnergyCloud(r, p, we);
+		energyCloud = createEnergyCloudThreadedNEWNEW(r, p, we);
 		//		energyCloud = createEnergyCloudThreaded(r, p, we);
 //		energyCloud = createEnergyCloudThreadedLoopNEW(r, p, we);
 
@@ -1163,8 +1163,9 @@ public class Map3D extends MouseAdapter{
 					curr[0].translateTarget(currPos);
 					curr[1].translateTarget(currPos);
 
-					OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
-
+//					OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
+					Planner thread = new Planner(curr[0], curr[1], r, point);
+					
 					Future<EnergyPoint> result = execs.submit(thread);
 
 					energyCloud.add(counter, result);
