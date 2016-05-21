@@ -160,11 +160,15 @@ public class Map3D extends MouseAdapter{
 		Robot r = new Robot(xmlFilePath, true);
 
 		//		setLayout(new BorderLayout());
+		
+		Frame frame = new Frame("Map3D");
+
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 		canvas = new Canvas3D(config);
 		//		add("North", new Label(""));
 		//		add("Center", canvas);
 		//		add("South", new Label(""));
+		canvas.setSize(400, 400);
 
 		u = new SimpleUniverse(canvas);
 
@@ -579,8 +583,10 @@ public class Map3D extends MouseAdapter{
 
 		TransformGroup tg = setPosition(ep.getPosition());
 
-		Sphere s = new Sphere(0.08f);
+//		Sphere s = new Sphere(0.08f);
 
+//		Sphere s = new Sphere(0.14f);
+		Sphere s = new Sphere(0.04f);
 		/*
 		 * Setting the appearance of the sphere (color and transparency)
 		 */

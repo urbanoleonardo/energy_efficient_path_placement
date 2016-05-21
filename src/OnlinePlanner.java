@@ -610,8 +610,10 @@ public class OnlinePlanner implements Runnable{
 		EnergyPoint newPoint = new EnergyPoint(minEnergy);
 		this.energyList.add(newPoint);
 
-		System.out.println("Last sample of inverse dynamics took : " + (time2 - time1)/1E9 );
+//		System.out.println("Last sample of inverse dynamics took : " + (time2 - time1)/1E9 );
 		
+
+//		this.writeSolutionToExcel(optKinSolution, optDynSolution, trajectory);
 	}
 
 	private double[] dynamicAnalysis(double[] theta, double[] dtheta, double[] ddtheta, double[] T, double[] f){

@@ -33,7 +33,7 @@ public class OnlinePlannerCallable implements Callable<EnergyPoint>{
 	
 	private List<EnergyPoint> energyList;
 	private Point3D point3D = null;
-	
+	private List<Point3D> points3D = null;
 	
 	public OnlinePlannerCallable(Robot robot)
 	{
@@ -81,6 +81,20 @@ public class OnlinePlannerCallable implements Callable<EnergyPoint>{
 		
 		this.energyList = new LinkedList<EnergyPoint>();
 		this.point3D = point3D;
+	}
+	
+	public OnlinePlannerCallable(Path p, Robot robot, List<Point3D> points3D)
+	{
+
+		this.robot = robot;
+		this.copyRobotParameters();		
+
+		this.path = p;
+		path.setMaxAcc(acceleration);
+		path.setMaxVel(velocity);
+
+		this.energyList = new LinkedList<EnergyPoint>();
+		this.points3D = points3D;
 	}
 	
 	public EnergyPoint call(){
@@ -202,6 +216,84 @@ public class OnlinePlannerCallable implements Callable<EnergyPoint>{
 		
 		this.path = null;
 	}
+	
+	public void run(){
+		if(this.points3D == null){
+			if(this.path == null){
+				double xSample = 1E-3;
+				double tSample = 0.01;
+				boolean canSolve = true;
+
+				for( int i = 0; i < targetsLength && canSolve; i++){
+					//Line to be removed
+					if(currPosition == targets[i]){
+						//					System.out.println("Current position is equal to the next target.");
+						continue;
+					}
+
+					this.path = new Path(currPosition, targets[i], tSample, xSample);
+					path.setMaxAcc(acceleration);
+					path.setMaxVel(velocity);
+
+					canSolve = solver(path);
+					currPosition = targets[i];
+
+					if(point3D != null){
+						//I need to add the position vector to the energyPoint just calculated
+						EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
+						newPoint.setPosition(point3D.getPosition());
+						this.energyList.set(this.energyList.size() - 1, newPoint);
+					}
+				}
+
+
+			}else {
+
+				solver(path);
+
+				if(point3D != null){
+					//I need to add the position vector to the energyPoint just calculated
+					EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
+					newPoint.setPosition(point3D.getPosition());
+					this.energyList.set(this.energyList.size() - 1, newPoint);
+				}
+			}
+		} else {
+
+			Target[] targets = path.getPathPositions();
+
+			double[][] inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
+			double[][] finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+
+			for(Point3D point : points3D){
+
+				Target[] curr = new Target[2];
+				curr[0] = new Target(inPosH);
+				curr[1] = new Target(finPosH);
+				double[] currPos = Matrix.copyVector(point.getPosition());
+				curr[0].translateTarget(currPos);
+				curr[1].translateTarget(currPos);
+
+
+				Path currentPath = new Path(curr[0], curr[1]);
+				currentPath.setMaxAcc(acceleration);
+				currentPath.setMaxVel(velocity);
+
+				solver(currentPath);
+
+				EnergyPoint newPoint = this.energyList.get(this.energyList.size() - 1); 
+				newPoint.setPosition(point.getPosition());
+				this.energyList.set(this.energyList.size() - 1, newPoint);
+			}
+
+		}
+
+
+		this.path = null;
+		this.point3D = null;
+		this.points3D = null;
+	}
+	
 	
 	private int copyTargets(Target[] targetsToStore)
 	{
@@ -459,8 +551,9 @@ public class OnlinePlannerCallable implements Callable<EnergyPoint>{
 				
 				energy += power*dTime;
 				
-				
-				
+				if(energy > minEnergy){
+					break;
+				}
 //				if(i == 70){
 //					System.out.println("Theta vector for i=" + i + ": ");
 //					Matrix.displayVector(theta);
