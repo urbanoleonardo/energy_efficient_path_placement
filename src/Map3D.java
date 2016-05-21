@@ -126,7 +126,7 @@ public class Map3D extends MouseAdapter{
 
 					}
 				}
-				
+
 				System.out.println("");
 				System.out.println("CURRENT INITIAL POSITION");
 				System.out.println("x = " + h[3] + " y = " + h[7] + " z = " + h[11]);
@@ -148,13 +148,13 @@ public class Map3D extends MouseAdapter{
 		}
 
 	}
-	
+
 	public Map3D(String xmlFilePath, List<EnergyPoint> energyList){
 		double distanceView = 110;
 		double[] centerView = { -0.1, 0.45, 3.5 };
 
 		Robot r = new Robot(xmlFilePath, true);
-		
+
 		Frame frame = new Frame("Map3D");
 
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
@@ -162,9 +162,9 @@ public class Map3D extends MouseAdapter{
 		canvas.setSize(400, 400);
 
 		u = new SimpleUniverse(canvas);
-		
 
-		
+
+
 
 		BranchGroup scene = createSceneGraph(energyList);
 		System.out.println("End creating SceneGraph");
@@ -172,7 +172,7 @@ public class Map3D extends MouseAdapter{
 		u.getViewingPlatform().getViewPlatformTransform().setTransform(setView());
 
 		u.addBranchGraph(scene);
-		
+
 		frame.addWindowListener(new WindowAdapter() {
 
 			public void windowClosing(WindowEvent winEvent) {
@@ -182,9 +182,9 @@ public class Map3D extends MouseAdapter{
 			}
 
 		});
-		
+
 		frame.add(canvas);
-		
+
 		pickCanvas = new PickCanvas(canvas, scene);
 
 		pickCanvas.setMode(PickCanvas.GEOMETRY);
@@ -194,7 +194,7 @@ public class Map3D extends MouseAdapter{
 		frame.pack();
 
 		frame.show();
-		
+
 		System.out.println("End of Map3D");
 	}
 
@@ -221,36 +221,36 @@ public class Map3D extends MouseAdapter{
 		//				{ 0.0, 1.0, 0.0, 0.58041 },
 		//				{ 0.0, 0.0, 0.0, 1.0 } };
 		double[][] h1 = { 	{ 1.0, 0.0, 0.0, 0.0 }, 
-							{ 0.0, 1.0, 0.0, 0.2 }, 
-							{ 0.0, 0.0, -1.0, 0.0 },
-							{ 0.0, 0.0, 0.0, 1.0 } };
+				{ 0.0, 1.0, 0.0, 0.2 }, 
+				{ 0.0, 0.0, -1.0, 0.0 },
+				{ 0.0, 0.0, 0.0, 1.0 } };
 		double[][] h2 = 	{ 	{ 1.0, 0.0, 0.0, 0.0 },
-								{ 0.0, 1.0, 0.0, -0.2 }, 
-								{ 0.0, 0.0, -1.0, 0.0 },
-								{ 0.0, 0.0, 0.0, 1.0 } };
-		
-//		Quat4d q = new Quat4d(0.28071, -0.46957, -0.82150, -0.16078);
-//		double[][] rot = Path.quatToRotm(q);
-//		double[] pos0 = {0d, 0d, 0d};
-//		double[] pos1 = {0d, 1.9, 340.7};
-//		double[] pos2 = {-5.5, -633.1, 337.3};
-//		double[] pos3 = {-5.5, -633.1, 0d};
-//		Target testTarget1 = new Target(pos0, rot);
-//		Target testTarget2 = new Target(pos1, rot);
-//		Target testTarget3 = new Target(pos2, rot);
-//		Target testTarget4 = new Target(pos3, rot);
+				{ 0.0, 1.0, 0.0, -0.2 }, 
+				{ 0.0, 0.0, -1.0, 0.0 },
+				{ 0.0, 0.0, 0.0, 1.0 } };
+
+		//		Quat4d q = new Quat4d(0.28071, -0.46957, -0.82150, -0.16078);
+		//		double[][] rot = Path.quatToRotm(q);
+		//		double[] pos0 = {0d, 0d, 0d};
+		//		double[] pos1 = {0d, 1.9, 340.7};
+		//		double[] pos2 = {-5.5, -633.1, 337.3};
+		//		double[] pos3 = {-5.5, -633.1, 0d};
+		//		Target testTarget1 = new Target(pos0, rot);
+		//		Target testTarget2 = new Target(pos1, rot);
+		//		Target testTarget3 = new Target(pos2, rot);
+		//		Target testTarget4 = new Target(pos3, rot);
 
 		Target testTarget1 = new Target(h1);
 		Target testTarget2 = new Target(h2);
-//		double[] backToCow = { - testTarget1.getPosition()[0],  - testTarget1.getPosition()[1],  - testTarget1.getPosition()[2]};
-//		testTarget1.translateTarget(backToCow);
-//		testTarget2.translateTarget(backToCow);
+		//		double[] backToCow = { - testTarget1.getPosition()[0],  - testTarget1.getPosition()[1],  - testTarget1.getPosition()[2]};
+		//		testTarget1.translateTarget(backToCow);
+		//		testTarget2.translateTarget(backToCow);
 		double x_sample = 1E-3;
 		double t_sample = 0.01;
 		double acceleration = 1.0;
 		double velocity = 0.2;
 		Path p = new Path(testTarget1, testTarget2, t_sample, x_sample);
-//		Path p = new SquarePath(testTarget1, testTarget2, testTarget3, testTarget4, t_sample, x_sample);
+		//		Path p = new SquarePath(testTarget1, testTarget2, testTarget3, testTarget4, t_sample, x_sample);
 
 		p.setMaxAcc(acceleration);
 		p.setMaxVel(velocity);
@@ -260,7 +260,7 @@ public class Map3D extends MouseAdapter{
 		//		double res = 0.05;
 		double[] min = { -1.0, -1.0, 0.0 };
 		double[] max = { 1.0, 1.0, 1.0 };
-		double res = 0.05;
+		double res = 0.02;
 
 		long time = System.currentTimeMillis();
 
@@ -289,13 +289,13 @@ public class Map3D extends MouseAdapter{
 		 * - reference frame.
 		 */
 
-		//		List<EnergyPoint> energyCloud = createEnergyCloud(r, p, we);
-//		energyCloud = createEnergyCloudThreaded(r, p, we);
-		energyCloud = createEnergyCloudThreadedLoopNEW(r, p, we);
+		energyCloud = createEnergyCloud(r, p, we);
+		//		energyCloud = createEnergyCloudThreaded(r, p, we);
+//		energyCloud = createEnergyCloudThreadedLoopNEW(r, p, we);
 
 		int numFeasibleSol = energyCloud.size();
 		int[] weSize = we.getSize();
-		int weSizeTot = weSize[0] + weSize[1] + weSize[2];
+		int weSizeTot = weSize[0] * weSize[1] * weSize[2];
 
 		BranchGroup objRoot = new BranchGroup();
 		TransformGroup cow = new TransformGroup();
@@ -358,16 +358,16 @@ public class Map3D extends MouseAdapter{
 		cow.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		objRoot.addChild(cow);
 
-		
-	    OrbitBehavior ob = new OrbitBehavior(u.getCanvas());
-	    ob.setReverseRotate(true);
-	    ob.setReverseTranslate(true);
-	    ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
-	    u.getViewingPlatform().setViewPlatformBehavior(ob);
-		
+
+		OrbitBehavior ob = new OrbitBehavior(u.getCanvas());
+		ob.setReverseRotate(true);
+		ob.setReverseTranslate(true);
+		ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
+		u.getViewingPlatform().setViewPlatformBehavior(ob);
+
 		int numClusters = 11;
 		computeEnergyColors(energyCloud, numClusters);
-		
+
 		for(EnergyPoint ep : energyCloud)
 			rotObj.addChild(energyPoint(ep));
 
@@ -391,7 +391,7 @@ public class Map3D extends MouseAdapter{
 
 		return objRoot;
 	}
-	
+
 	private class Result{
 
 		int numClusters;
@@ -598,7 +598,7 @@ public class Map3D extends MouseAdapter{
 
 		TransformGroup tg = setPosition(ep.getPosition());
 
-//		Sphere s = new Sphere(0.14f);
+		//		Sphere s = new Sphere(0.14f);
 		Sphere s = new Sphere(0.04f);
 		/*
 		 * Setting the appearance of the sphere (color and transparency)
@@ -632,13 +632,16 @@ public class Map3D extends MouseAdapter{
 		 * It creates a 3D matrix with energy values for every single starting
 		 * position inside the working envelope
 		 */
-
+		ExecutorService execs = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		long time = System.currentTimeMillis();
+		
 		double[] currPos = new double[3];
 		double[][] inPosH = new double[4][4];
 		double[][] finPosH = new double[4][4];
 
-		List<Point3D> weList = we.getWeList();
-		List<EnergyPoint> energyCloud = new LinkedList<EnergyPoint>();
+		double weResolution = we.getResolution();
+		double[] weMinValues = we.getMinValues();
+		int[] weSize = we.getSize();
 
 		Target[] targets = p.getPathPositions();
 
@@ -649,63 +652,80 @@ public class Map3D extends MouseAdapter{
 		 * Here I initialize the OnlinePlanner to then create a thread each
 		 * iteration of the following loops
 		 */
-		OnlinePlanner dynSolution = new OnlinePlanner(targets, r);
 
-		for(Point3D point : weList){
+		List<Future<EnergyPoint>> energyCloud = new LinkedList<Future<EnergyPoint>>();
+		List<EnergyPoint> energyCloudFinal = new LinkedList<EnergyPoint>();
+		
+		BigDecimal[] buffer = new BigDecimal[3];
+		MathContext mt = new MathContext(2, RoundingMode.HALF_DOWN);
 
-			Target[] curr = new Target[2];
-			curr[0] = new Target(inPosH);
-			curr[1] = new Target(finPosH);
+		int[] index = new int[3];
 
-			targets[0].setHomMatrix(inPosH);
-			targets[1].setHomMatrix(finPosH);
+		for (index[0] = 0; index[0] < weSize[0]; index[0]++){
+			for (index[1] = 0; index[1] < weSize[1]; index[1]++){
+				for (index[2] = 0; index[2] < weSize[2]; index[2]++){
 
-			currPos = Matrix.copyVector(point.getPosition());
+					for(int j = 0; j < 3; j++){					
+						buffer[j] = new BigDecimal(weMinValues[j] + index[j] * weResolution, mt);
+					}
+					Target[] curr = new Target[2];
+					curr[0] = new Target(inPosH);
+					curr[1] = new Target(finPosH);
 
-			//					System.out.println("currPos = ");
-			//					Matrix.displayVector(currPos);
+//					targets[0].setHomMatrix(inPosH);
+//					targets[1].setHomMatrix(finPosH);
 
-			curr[0].translateTarget(currPos);
-			curr[1].translateTarget(currPos);
+					Point3D point = new Point3D(buffer[0].doubleValue(), buffer[1].doubleValue(), buffer[2].doubleValue());
+					
+					currPos = Matrix.copyVector(point.getPosition());
+					curr[0].translateTarget(currPos);
+					curr[1].translateTarget(currPos);
 
-			//					System.out.println("Current initial position: ");
-			//					Matrix.displayMatrix(curr[0].getHomMatrix());
+					/*
+					 * Here I create the thread to calculate the energy value
+					 * with current initial and final position
+					 */
+					Planner thread = new Planner(curr[0], curr[1], r, point);
 
-			//					System.out.println("Current final position: ");
-			//					Matrix.displayMatrix(curr[1].getHomMatrix());
+					Future<EnergyPoint> result = execs.submit(thread);
 
-			/*
-			 * Here I create the thread to calculate the energy value
-			 * with current initial and final position
-			 */
-			dynSolution.run(curr[0], curr[1], point);
+					energyCloud.add(result);
 
-			/*
-			 * Every time the Online Planner calculates an energy value
-			 * it stores it in energyList. In order to get the current
-			 * energy value I have to "ask" for the last element added
-			 * to the list
-			 */
+					/*
+					 * Every time the Online Planner calculates an energy value
+					 * it stores it in energyList. In order to get the current
+					 * energy value I have to "ask" for the last element added
+					 * to the list
+					 */
 
-			double energy = dynSolution.getEnergyList().get(dynSolution.getEnergyList().size() - 1).getEnergy();
+					//					System.out.println(
+					//							"energyMatrix[" + x + "]" + "[" + y + "]" + "[" + z + "]" + " = " + energyMatrix[x][y][z]);
 
-			if(energy != 0.0){
-
-				EnergyPoint ep = new EnergyPoint();
-
-				ep.setPosition(point.getPosition());
-				ep.setEnergy(energy);
-
-				energyCloud.add(ep);
-
+				}
 			}
-
-			//					System.out.println(
-			//							"energyMatrix[" + x + "]" + "[" + y + "]" + "[" + z + "]" + " = " + energyMatrix[x][y][z]);
-
 		}
-
-		return energyCloud;
+		
+		execs.shutdown();
+		
+		for(Future<EnergyPoint> point : energyCloud){
+			try {
+				if(point.get().getEnergy() != 0.0){
+					energyCloudFinal.add(point.get());
+				}
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				e.getCause();
+			}
+		}
+		
+		time = System.currentTimeMillis() - time;
+		System.out.println("Time for calculating energy values: " + time/1000 + " sec");
+		
+		return energyCloudFinal;
 
 	}
 
@@ -767,8 +787,8 @@ public class Map3D extends MouseAdapter{
 			 */
 
 			//					dynSolution.run(curr[0], curr[1], point);
-			OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
-//			Planner thread = new Planner(curr[0], curr[1], r, point);
+			//			OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
+			Planner thread = new Planner(curr[0], curr[1], r, point);
 
 			Future<EnergyPoint> result = execs.submit(thread);
 
@@ -866,15 +886,15 @@ public class Map3D extends MouseAdapter{
 		int progress = 0;
 		int dProgress = 100/numberOfThreads;
 		List<Thread> threads = new LinkedList<Thread>();
-//		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
-		List<Planner> planners = new LinkedList<Planner>();
+		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
+		//		List<Planner> planners = new LinkedList<Planner>();
 
 		for(int i = 0; i < numberOfThreads; i++){
 			int from = i*portion;
 			int to = i < numberOfThreads-1 ? (i+1)*portion : weList.size();
 
-//			OnlinePlanner planner = new OnlinePlanner(p, r, weList.subList(from, to-1));
-			Planner planner = new Planner(p, r, weList.subList(from, to-1));
+			OnlinePlanner planner = new OnlinePlanner(p, r, weList.subList(from, to-1));
+			//			Planner planner = new Planner(p, r, weList.subList(from, to-1));
 			Thread thread = new Thread( planner );
 			planners.add(planner);
 			threads.add(thread);
@@ -903,21 +923,21 @@ public class Map3D extends MouseAdapter{
 			}
 		}
 
-//		for(OnlinePlanner elem : planners){
-//			for(EnergyPoint point : elem.getEnergyList()){
-//				if(point.getEnergy() != 0.0){
-//					energyCloudFinal.add(point);
-//				}
-//			}
-//		}
-
-		for(Planner elem : planners){
+		for(OnlinePlanner elem : planners){
 			for(EnergyPoint point : elem.getEnergyList()){
 				if(point.getEnergy() != 0.0){
 					energyCloudFinal.add(point);
 				}
 			}
 		}
+
+		//		for(Planner elem : planners){
+		//			for(EnergyPoint point : elem.getEnergyList()){
+		//				if(point.getEnergy() != 0.0){
+		//					energyCloudFinal.add(point);
+		//				}
+		//			}
+		//		}
 		energyCloudFinal.sort(null);
 
 		time = System.currentTimeMillis() - time;
@@ -927,7 +947,7 @@ public class Map3D extends MouseAdapter{
 
 
 	}
-	
+
 	private List<EnergyPoint> createEnergyCloudThreadedLoopNEW(Robot r, Path p, WorkingEnvelope we) {
 
 		/*
@@ -954,7 +974,7 @@ public class Map3D extends MouseAdapter{
 		double[][] inPosH = new double[4][4];
 		double[][] finPosH = new double[4][4];
 
-//		List<Point3D> weList = we.getWeList();
+		//		List<Point3D> weList = we.getWeList();
 
 		List<EnergyPoint> energyCloudFinal = new LinkedList<EnergyPoint>();
 
@@ -974,57 +994,57 @@ public class Map3D extends MouseAdapter{
 		double[] weMinValues = we.getMinValues();
 		int weSizeTot = weSize[0] + weSize[1] + weSize[2];
 		int portion = weSizeTot/numberOfThreads;
-		
+
 		int progress = 0;
 		int dProgress = 100/numberOfThreads;
 		List<Thread> threads = new LinkedList<Thread>();
 		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
 
-			List<Point3D> currPoints = new ArrayList<Point3D>(portion);
-			
-			BigDecimal[] buffer = new BigDecimal[3];
-			MathContext mt = new MathContext(2, RoundingMode.HALF_DOWN);
-			
-			int[] index = new int[3];
-			
-			for (index[0] = 0; index[0] < weSize[0]; index[0]++)
-				for (index[1] = 0; index[1] < weSize[1]; index[1]++)
-					for (index[2] = 0; index[2] < weSize[2]; index[2]++){
-													
-						for(int j = 0; j < 3; j++)					
-							buffer[j] = new BigDecimal(weMinValues[j] + index[j] * weResolution, mt);
-							
-							Point3D p3d = new Point3D(buffer[0].doubleValue(), buffer[1].doubleValue(), buffer[2].doubleValue());
-							
-							currPoints.add(counter, p3d);
-							
-							counter++;
-							
-							if(counter < portion)
-								continue;
-							
-							counter = 0;
-							
-							OnlinePlanner planner = new OnlinePlanner(p, r, currPoints);
-							
-							Thread thread = new Thread( planner );
-							
-							planners.add(planner);
-							threads.add(thread);
-							
-								}
+		List<Point3D> currPoints = new ArrayList<Point3D>(portion);
+
+		BigDecimal[] buffer = new BigDecimal[3];
+		MathContext mt = new MathContext(2, RoundingMode.HALF_DOWN);
+
+		int[] index = new int[3];
+
+		for (index[0] = 0; index[0] < weSize[0]; index[0]++)
+			for (index[1] = 0; index[1] < weSize[1]; index[1]++)
+				for (index[2] = 0; index[2] < weSize[2]; index[2]++){
+
+					for(int j = 0; j < 3; j++)					
+						buffer[j] = new BigDecimal(weMinValues[j] + index[j] * weResolution, mt);
+
+					Point3D p3d = new Point3D(buffer[0].doubleValue(), buffer[1].doubleValue(), buffer[2].doubleValue());
+
+					currPoints.add(counter, p3d);
+
+					counter++;
+
+					if(counter < portion)
+						continue;
+
+					counter = 0;
+
+					OnlinePlanner planner = new OnlinePlanner(p, r, currPoints);
+
+					Thread thread = new Thread( planner );
+
+					planners.add(planner);
+					threads.add(thread);
+
+				}
 
 		for(Thread currThread : threads)
 			currThread.start();
 
 		for(Thread currThread : threads){
-			
+
 			try {
-				
+
 				currThread.join();
-				
+
 				if(currThread.getState() == Thread.State.TERMINATED){
-					
+
 					System.out.println("Thread is terminated.");
 					progress += dProgress;			
 					progressBar.setValue(progress);
@@ -1032,24 +1052,24 @@ public class Map3D extends MouseAdapter{
 					progressBar.paint(progressBar.getGraphics());
 					if(progress == 100)
 						f.setVisible(false);
-					
+
 				}
-				
+
 			}
-			
+
 			catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		}
 
 		for(OnlinePlanner elem : planners){
-			
+
 			for(EnergyPoint point : elem.getEnergyList())
 				if(point.getEnergy() != 0.0)
 					energyCloudFinal.add(point);
-				
+
 		}
 
 		energyCloudFinal.sort(null);
@@ -1142,7 +1162,7 @@ public class Map3D extends MouseAdapter{
 		TransformGroup tg = new TransformGroup();
 		Transform3D t3d = new Transform3D();
 
-//		t3d.rotZ(Math.PI/2);
+		//		t3d.rotZ(Math.PI/2);
 
 		if(path.contains("1600")){
 
