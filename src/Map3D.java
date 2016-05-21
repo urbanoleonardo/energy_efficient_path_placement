@@ -685,7 +685,7 @@ public class Map3D extends MouseAdapter{
 					 * Here I create the thread to calculate the energy value
 					 * with current initial and final position
 					 */
-					Planner thread = new Planner(curr[0], curr[1], r, point);
+					PlannerList thread = new PlannerList(curr[0], curr[1], r, point);
 
 					Future<EnergyPoint> result = execs.submit(thread);
 
@@ -788,7 +788,7 @@ public class Map3D extends MouseAdapter{
 
 			//					dynSolution.run(curr[0], curr[1], point);
 			//			OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
-			Planner thread = new Planner(curr[0], curr[1], r, point);
+			PlannerList thread = new PlannerList(curr[0], curr[1], r, point);
 
 			Future<EnergyPoint> result = execs.submit(thread);
 
@@ -887,14 +887,14 @@ public class Map3D extends MouseAdapter{
 		int dProgress = 100/numberOfThreads;
 		List<Thread> threads = new LinkedList<Thread>();
 		List<OnlinePlanner> planners = new LinkedList<OnlinePlanner>();
-		//		List<Planner> planners = new LinkedList<Planner>();
+		//		List<PlannerList> planners = new LinkedList<PlannerList>();
 
 		for(int i = 0; i < numberOfThreads; i++){
 			int from = i*portion;
 			int to = i < numberOfThreads-1 ? (i+1)*portion : weList.size();
 
 			OnlinePlanner planner = new OnlinePlanner(p, r, weList.subList(from, to-1));
-			//			Planner planner = new Planner(p, r, weList.subList(from, to-1));
+			//			PlannerList planner = new PlannerList(p, r, weList.subList(from, to-1));
 			Thread thread = new Thread( planner );
 			planners.add(planner);
 			threads.add(thread);
@@ -931,7 +931,7 @@ public class Map3D extends MouseAdapter{
 			}
 		}
 
-		//		for(Planner elem : planners){
+		//		for(PlannerList elem : planners){
 		//			for(EnergyPoint point : elem.getEnergyList()){
 		//				if(point.getEnergy() != 0.0){
 		//					energyCloudFinal.add(point);
@@ -1164,7 +1164,7 @@ public class Map3D extends MouseAdapter{
 					curr[1].translateTarget(currPos);
 
 //					OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
-					Planner thread = new Planner(curr[0], curr[1], r, point);
+					PlannerList thread = new PlannerList(curr[0], curr[1], r, point);
 					
 					Future<EnergyPoint> result = execs.submit(thread);
 
