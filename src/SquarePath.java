@@ -53,6 +53,21 @@ public class SquarePath extends Path{
 		this.vertex2 = vertex2;
 	}
 
+	/**
+	 * @return vector containing the points of the Square Path
+	 */
+	@Override
+	public Target[] getPathPositions()
+	{
+		
+		Target[] pathPositions = new Target[4];
+		pathPositions[0] = this.initialPosition;
+		pathPositions[1] = this.vertex1;
+		pathPositions[2] = this.vertex2;
+		pathPositions[3] = this.finalPosition;
+		return pathPositions;
+	}
+	
 	public Trajectory interpolate(){
 		/*
 		 * This method is interpolating through the 4 points specified in the constructor. 
@@ -93,5 +108,15 @@ public class SquarePath extends Path{
 		return interpolatedPath;
 	}
 	
-	
+	@Override 
+	public void translatePath(double[] vector){
+		this.initialPosition.translateTarget(vector);
+		this.finalPosition.translateTarget(vector);
+		this.vertex1.translateTarget(vector);
+		this.vertex2.translateTarget(vector);
+		
+		if(this.interpolatedPath != null){
+			this.translateTrajectory(vector);
+		}
+	}
 }

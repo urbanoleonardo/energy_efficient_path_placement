@@ -299,7 +299,12 @@ public class Path {
 		this.finalPosition.translateTarget(vector);
 	}
 	
-	
+	public void translatePath(double[] vector){
+		this.translateTargets(vector);
+		if(this.interpolatedPath != null){
+			this.translateTrajectory(vector);
+		}
+	}
 	//END of PUBLIC methods
 	
 	
