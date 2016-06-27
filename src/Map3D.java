@@ -220,11 +220,13 @@ public class Map3D extends MouseAdapter{
 		//				{ 1.0, 0.0, 0.0, -0.21132 }, 
 		//				{ 0.0, 1.0, 0.0, 0.58041 },
 		//				{ 0.0, 0.0, 0.0, 1.0 } };
-		double[][] h1 = { 	{ 1.0, 0.0, 0.0, 0.0 }, 
+		double[][] h1 = { 	
+				{ 1.0, 0.0, 0.0, 0.0 }, 
 				{ 0.0, 1.0, 0.0, 0.2 }, 
 				{ 0.0, 0.0, -1.0, 0.0 },
 				{ 0.0, 0.0, 0.0, 1.0 } };
-		double[][] h2 = 	{ 	{ 1.0, 0.0, 0.0, 0.0 },
+		double[][] h2 = 	
+			{ 	{ 1.0, 0.0, 0.0, 0.0 },
 				{ 0.0, 1.0, 0.0, -0.2 }, 
 				{ 0.0, 0.0, -1.0, 0.0 },
 				{ 0.0, 0.0, 0.0, 1.0 } };
@@ -311,7 +313,7 @@ public class Map3D extends MouseAdapter{
 		ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
 		u.getViewingPlatform().setViewPlatformBehavior(ob);
 
-		int numClusters = 11;
+		int numClusters = 9;
 		computeEnergyColors(energyCloud, numClusters);
 
 		for(EnergyPoint ep : energyCloud)
@@ -365,7 +367,7 @@ public class Map3D extends MouseAdapter{
 		ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
 		u.getViewingPlatform().setViewPlatformBehavior(ob);
 
-		int numClusters = 11;
+		int numClusters = 5;
 		computeEnergyColors(energyCloud, numClusters);
 
 		for(EnergyPoint ep : energyCloud)
@@ -474,9 +476,9 @@ public class Map3D extends MouseAdapter{
 
 			if(r.cluster[i + 1] > Math.ceil(numClusters/2)){
 				rgb[0] = 1f;
-				rgb[1] -= (r.cluster[i + 1] - Math.ceil(numClusters/2))*0.2f;
+				rgb[1] -= (r.cluster[i + 1] - Math.ceil(numClusters/2))*0.5f;
 			}else
-				rgb[0] += r.cluster[i + 1]*0.2f;
+				rgb[0] += r.cluster[i + 1]*0.5f;
 
 
 			Color3f color = new Color3f(rgb);
@@ -598,8 +600,8 @@ public class Map3D extends MouseAdapter{
 
 		TransformGroup tg = setPosition(ep.getPosition());
 
-		//		Sphere s = new Sphere(0.14f);
-		Sphere s = new Sphere(0.04f);
+		//		Sphere s = new Sphere(0.04f);
+		Sphere s = new Sphere(0.14f);
 		/*
 		 * Setting the appearance of the sphere (color and transparency)
 		 */
@@ -1300,7 +1302,7 @@ public class Map3D extends MouseAdapter{
 
 	private TransformGroup robotModel() {
 
-		String path = "src/Robot 3D models/IRB 140.obj";
+		String path = "src/Robot 3D models/IRB 1600.obj";
 
 		ObjectFile loader = new ObjectFile();
 		Scene s = null;
@@ -1313,7 +1315,7 @@ public class Map3D extends MouseAdapter{
 		if(path.contains("1600")){
 
 			t3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-			t3d.setScale(0.0006);
+			t3d.setScale(0.0011);
 
 		}else{
 
