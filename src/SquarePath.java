@@ -68,10 +68,14 @@ public class SquarePath extends Path{
 		return pathPositions;
 	}
 	
+	/**
+	 * This method is interpolating through the 4 points specified in the constructor.
+	 *  
+ 	 * @return the trajectory that will be assigned to the Path (Parent) attribute.
+	 */
+	
 	public Trajectory interpolate(){
 		/*
-		 * This method is interpolating through the 4 points specified in the constructor. 
-		 * It returns the trajectory that will be the Path (Parent) attribute.
 		 * The Parent method interpolate will be called for each couple of points and then merged.
 		 */
 		Trajectory interpolatedPath = new Trajectory();

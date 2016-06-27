@@ -109,6 +109,16 @@ public class PlannerList implements Callable<EnergyPoint> {
 		
 	}
 
+	public PlannerList (Path p, Robot robot, Point3D point3D){
+
+		this.robot = robot;
+		this.copyRobotParameters();		
+
+		this.path = p;
+		this.energyList = new LinkedList<EnergyPoint>();
+		this.point3D = point3D;
+	}
+	
 	public PlannerList(Path p, Robot robot, List<Point3D> points3D)
 	{
 
@@ -153,7 +163,6 @@ public class PlannerList implements Callable<EnergyPoint> {
 
 
 		}else {
-
 			solver(path);
 
 			if(point3D != null){

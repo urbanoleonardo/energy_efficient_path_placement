@@ -373,7 +373,7 @@ public class Map3D extends MouseAdapter{
 		ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
 		u.getViewingPlatform().setViewPlatformBehavior(ob);
 
-		int numClusters = 11;
+		int numClusters = 5;
 		computeEnergyColors(energyCloud, numClusters);
 
 		for(EnergyPoint ep : energyCloud)
@@ -606,8 +606,9 @@ public class Map3D extends MouseAdapter{
 
 		TransformGroup tg = setPosition(ep.getPosition());
 
-				Sphere s = new Sphere(0.14f);
-//		Sphere s = new Sphere(0.10f);
+
+		//		Sphere s = new Sphere(0.04f);
+		Sphere s = new Sphere(0.14f);
 		/*
 		 * Setting the appearance of the sphere (color and transparency)
 		 */

@@ -18,8 +18,8 @@ public class Path {
 										  // final position within of course.
 										  	
 	
-	protected double tSample; //time resolution for the trajectory
-	protected double xSample; //space resolution for the trajectory
+	protected double tSample = 0.01; //time resolution for the trajectory
+	protected double xSample = 1E-3; //space resolution for the trajectory
 	
 	protected double maxVel; //these two parameters MAYBE have to belong to the robot
 	protected double maxAcc;
@@ -49,9 +49,6 @@ public class Path {
 	{
 		this.initialPosition = initialPosition;
 		this.finalPosition = finalPosition;
-		
-		this.tSample = 0.01;		//If a different resolution is required it has to be specified
-		this.xSample = 1E-3;
 		
 		if(Matrix.equals(this.initialPosition.getRotation(), this.finalPosition.getRotation())){
 			this.slerpOn = false;
@@ -129,6 +126,18 @@ public class Path {
 	
 	public void setTSample(double t_sample){
 		this.tSample = t_sample;
+	}
+	
+	public void setTrajectory(Trajectory trajectory){
+		this.interpolatedPath.points.clear();
+		this.interpolatedPath.timeInstants.clear();
+		this.interpolatedPath.extForces.clear();
+		this.interpolatedPath.extTorques.clear();
+		this.interpolatedPath.points.addAll(trajectory.points);
+		this.interpolatedPath.timeInstants.addAll(trajectory.timeInstants);
+		this.interpolatedPath.extForces.addAll(trajectory.extForces);
+		this.interpolatedPath.extTorques.addAll(trajectory.extTorques);
+		
 	}
 	
 	//END of the SET methods
@@ -310,7 +319,7 @@ public class Path {
 	
 	//PRIVATE methods
 	
-	private Quat4d eulerToQuaternion( float eulerX, float eulerY, float eulerZ ){
+	protected Quat4d eulerToQuaternion( float eulerX, float eulerY, float eulerZ ){
 		/*
 		 * X -> PSI
 		 * y -> THETA
@@ -330,7 +339,7 @@ public class Path {
 		return q;
 	}
 	
-	private List<double[]> rotm2eul (double[][] matrix){
+	protected List<double[]> rotm2eul (double[][] matrix){
 		ArrayList<double[]> angles = new ArrayList<double[]>();
 		
 		//Copy the matrix elements to make formulas clear
@@ -462,7 +471,7 @@ public class Path {
 		return rotm;
 	}
 	
-	private Quat4d slerp(Quat4d qa, Quat4d qb, double t) {
+	protected Quat4d slerp(Quat4d qa, Quat4d qb, double t) {
 	    // quaternion to return
 		Quat4d qm = new Quat4d();
 	    // Calculate angle between them.
