@@ -30,7 +30,7 @@ import org.jgap.impl.IntegerGene;
 
 import com.sun.j3d.utils.applet.MainFrame;
 
-public class GATestOLD {
+public class GATest {
 
 	final static int MAX_ALLOWED_EVOLUTIONS = 500;
 
