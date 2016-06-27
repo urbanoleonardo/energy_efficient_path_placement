@@ -108,7 +108,8 @@ public class Map3D extends MouseAdapter{
 			Shape3D robot = (Shape3D)result.getNode(PickResult.SHAPE3D);
 
 			if (sphere != null) {
-
+				
+				energyCloud.sort(null);
 				double energyMin = energyCloud.get(0).getEnergy();
 				double energy = 0d;
 				double energyWaste = 0d;
@@ -134,6 +135,13 @@ public class Map3D extends MouseAdapter{
 				System.out.println("That is approximately " + energyWaste + " times more consuming of the minimum value of energy consumption.");
 				System.out.println("INITIAL POSITION OF MIN ENERGY VALUE");
 				System.out.println("x = " + energyCloud.get(0).getPosition()[0] + " y = " + energyCloud.get(0).getPosition()[1] + " z = " + energyCloud.get(0).getPosition()[2]);
+				System.out.println("MIN VALUE: " + energyMin + " J");
+				System.out.println("INITIAL POSITION OF MIN2 ENERGY VALUE");
+				System.out.println("x = " + energyCloud.get(1).getPosition()[0] + " y = " + energyCloud.get(1).getPosition()[1] + " z = " + energyCloud.get(1).getPosition()[2]);
+				System.out.println("MIN VALUE: " + energyCloud.get(1).getEnergy() + " J");
+				System.out.println("INITIAL POSITION OF MIN3 ENERGY VALUE");
+				System.out.println("x = " + energyCloud.get(2).getPosition()[0] + " y = " + energyCloud.get(2).getPosition()[1] + " z = " + energyCloud.get(2).getPosition()[2]);
+				System.out.println("MIN VALUE: " + energyCloud.get(2).getEnergy() + " J");
 
 			} else if (robot != null) {
 
@@ -198,87 +206,87 @@ public class Map3D extends MouseAdapter{
 		System.out.println("End of Map3D");
 	}
 
-	public static void main(String[] args) {
-
-		//		JProgressBar progressBar = new JProgressBar(0, 100);
-		//		progressBar.setValue(0);
-		//        progressBar.setStringPainted(true);
-		//		JApplet applet = new JApplet();
-		//		applet.add(progressBar);
-
-		/*
-		 * TEST
-		 */
-
-		String xmlFilePath = "src/Robot Constructors/XML ABB IRB 140.xml";
-
-		//		double[][] h1 = { { 0.0, 0.0, 1.0, 0.59627 }, 
-		//				{ 1.0, 0.0, 0.0, 0.0 }, 
-		//				{ 0.0, 1.0, 0.0, 0.66282 },
-		//				{ 0.0, 0.0, 0.0, 1.0 } };
-		//		double[][] h2 = { { 0.0, 0.0, 1.0, 0.59627 },
-		//				{ 1.0, 0.0, 0.0, -0.21132 }, 
-		//				{ 0.0, 1.0, 0.0, 0.58041 },
-		//				{ 0.0, 0.0, 0.0, 1.0 } };
-		double[][] h1 = { 	{ 1.0, 0.0, 0.0, 0.0 }, 
-				{ 0.0, 1.0, 0.0, 0.2 }, 
-				{ 0.0, 0.0, -1.0, 0.0 },
-				{ 0.0, 0.0, 0.0, 1.0 } };
-		double[][] h2 = 	{ 	{ 1.0, 0.0, 0.0, 0.0 },
-				{ 0.0, 1.0, 0.0, -0.2 }, 
-				{ 0.0, 0.0, -1.0, 0.0 },
-				{ 0.0, 0.0, 0.0, 1.0 } };
-
-		//		Quat4d q = new Quat4d(0.28071, -0.46957, -0.82150, -0.16078);
-		//		double[][] rot = Path.quatToRotm(q);
-		//		double[] pos0 = {0d, 0d, 0d};
-		//		double[] pos1 = {0d, 1.9, 340.7};
-		//		double[] pos2 = {-5.5, -633.1, 337.3};
-		//		double[] pos3 = {-5.5, -633.1, 0d};
-		//		Target testTarget1 = new Target(pos0, rot);
-		//		Target testTarget2 = new Target(pos1, rot);
-		//		Target testTarget3 = new Target(pos2, rot);
-		//		Target testTarget4 = new Target(pos3, rot);
-
-		Target testTarget1 = new Target(h1);
-		Target testTarget2 = new Target(h2);
-		//		double[] backToCow = { - testTarget1.getPosition()[0],  - testTarget1.getPosition()[1],  - testTarget1.getPosition()[2]};
-		//		testTarget1.translateTarget(backToCow);
-		//		testTarget2.translateTarget(backToCow);
-		double x_sample = 1E-3;
-		double t_sample = 0.01;
-		double acceleration = 1.0;
-		double velocity = 0.2;
-		Path p = new Path(testTarget1, testTarget2, t_sample, x_sample);
-		//		Path p = new SquarePath(testTarget1, testTarget2, testTarget3, testTarget4, t_sample, x_sample);
-
-		p.setMaxAcc(acceleration);
-		p.setMaxVel(velocity);
-
-		//		double[] min = {-0.5, 0.0, 0.0};
-		//		double[] max = {1.0, 1.0, 1.0};
-		//		double res = 0.05;
-		double[] min = { -1.0, -1.0, 0.0 };
-		double[] max = { 1.0, 1.0, 1.0 };
-		double res = 0.05;
-
-		long time = System.currentTimeMillis();
-
-		WorkingEnvelope we = new WorkingEnvelope(min, max, res);
-
-		//		new Map3d (xmlFilePath, p, we);
-
-		new Map3D(xmlFilePath, p, we);
-
-		//		Matrix.displayVector(backToCow);
-		//		Matrix.displayMatrix(testTarget1.getHomMatrix());
-
-		time = System.currentTimeMillis() - time;
-
-		System.out.println("Overall time: " + time/1000 + " sec");
-
-
-	}
+//	public static void main(String[] args) {
+//
+//		//		JProgressBar progressBar = new JProgressBar(0, 100);
+//		//		progressBar.setValue(0);
+//		//        progressBar.setStringPainted(true);
+//		//		JApplet applet = new JApplet();
+//		//		applet.add(progressBar);
+//
+//		/*
+//		 * TEST
+//		 */
+//
+//		String xmlFilePath = "src/Robot Constructors/XML ABB IRB 140.xml";
+//
+//		//		double[][] h1 = { { 0.0, 0.0, 1.0, 0.59627 }, 
+//		//				{ 1.0, 0.0, 0.0, 0.0 }, 
+//		//				{ 0.0, 1.0, 0.0, 0.66282 },
+//		//				{ 0.0, 0.0, 0.0, 1.0 } };
+//		//		double[][] h2 = { { 0.0, 0.0, 1.0, 0.59627 },
+//		//				{ 1.0, 0.0, 0.0, -0.21132 }, 
+//		//				{ 0.0, 1.0, 0.0, 0.58041 },
+//		//				{ 0.0, 0.0, 0.0, 1.0 } };
+//		double[][] h1 = { 	{ 1.0, 0.0, 0.0, 0.0 }, 
+//				{ 0.0, 1.0, 0.0, 0.2 }, 
+//				{ 0.0, 0.0, -1.0, 0.0 },
+//				{ 0.0, 0.0, 0.0, 1.0 } };
+//		double[][] h2 = 	{ 	{ 1.0, 0.0, 0.0, 0.0 },
+//				{ 0.0, 1.0, 0.0, -0.2 }, 
+//				{ 0.0, 0.0, -1.0, 0.0 },
+//				{ 0.0, 0.0, 0.0, 1.0 } };
+//
+//		//		Quat4d q = new Quat4d(0.28071, -0.46957, -0.82150, -0.16078);
+//		//		double[][] rot = Path.quatToRotm(q);
+//		//		double[] pos0 = {0d, 0d, 0d};
+//		//		double[] pos1 = {0d, 1.9, 340.7};
+//		//		double[] pos2 = {-5.5, -633.1, 337.3};
+//		//		double[] pos3 = {-5.5, -633.1, 0d};
+//		//		Target testTarget1 = new Target(pos0, rot);
+//		//		Target testTarget2 = new Target(pos1, rot);
+//		//		Target testTarget3 = new Target(pos2, rot);
+//		//		Target testTarget4 = new Target(pos3, rot);
+//
+//		Target testTarget1 = new Target(h1);
+//		Target testTarget2 = new Target(h2);
+//		//		double[] backToCow = { - testTarget1.getPosition()[0],  - testTarget1.getPosition()[1],  - testTarget1.getPosition()[2]};
+//		//		testTarget1.translateTarget(backToCow);
+//		//		testTarget2.translateTarget(backToCow);
+//		double x_sample = 1E-3;
+//		double t_sample = 0.01;
+//		double acceleration = 1.0;
+//		double velocity = 0.5;
+//		Path p = new Path(testTarget1, testTarget2, t_sample, x_sample);
+//		//		Path p = new SquarePath(testTarget1, testTarget2, testTarget3, testTarget4, t_sample, x_sample);
+//
+//		p.setMaxAcc(acceleration);
+//		p.setMaxVel(velocity);
+//
+//		//		double[] min = {-0.5, 0.0, 0.0};
+//		//		double[] max = {1.0, 1.0, 1.0};
+//		//		double res = 0.05;
+//		double[] min = { -1.0, -1.0, 0.0 };
+//		double[] max = { 1.0, 1.0, 1.0 };
+//		double res = 0.05;
+//
+//		long time = System.currentTimeMillis();
+//
+//		WorkingEnvelope we = new WorkingEnvelope(min, max, res);
+//
+//		//		new Map3d (xmlFilePath, p, we);
+//
+//		new Map3D(xmlFilePath, p, we);
+//
+//		//		Matrix.displayVector(backToCow);
+//		//		Matrix.displayMatrix(testTarget1.getHomMatrix());
+//
+//		time = System.currentTimeMillis() - time;
+//
+//		System.out.println("Overall time: " + time/1000 + " sec");
+//
+//
+//	}
 
 	private BranchGroup createSceneGraph(Robot r, Path p, WorkingEnvelope we) {
 
@@ -311,7 +319,7 @@ public class Map3D extends MouseAdapter{
 		ob.setSchedulingBounds(new BoundingSphere(new Point3d(0.0,0.0,0.0),Double.MAX_VALUE));
 		u.getViewingPlatform().setViewPlatformBehavior(ob);
 
-		int numClusters = 11;
+		int numClusters = 5;
 		computeEnergyColors(energyCloud, numClusters);
 
 		for(EnergyPoint ep : energyCloud)
@@ -474,9 +482,9 @@ public class Map3D extends MouseAdapter{
 
 			if(r.cluster[i + 1] > Math.ceil(numClusters/2)){
 				rgb[0] = 1f;
-				rgb[1] -= (r.cluster[i + 1] - Math.ceil(numClusters/2))*0.2f;
+				rgb[1] -= (r.cluster[i + 1] - Math.ceil(numClusters/2))*0.5f;
 			}else
-				rgb[0] += r.cluster[i + 1]*0.2f;
+				rgb[0] += r.cluster[i + 1]*0.5f;
 
 
 			Color3f color = new Color3f(rgb);
@@ -598,8 +606,8 @@ public class Map3D extends MouseAdapter{
 
 		TransformGroup tg = setPosition(ep.getPosition());
 
-		//		Sphere s = new Sphere(0.14f);
-		Sphere s = new Sphere(0.04f);
+				Sphere s = new Sphere(0.14f);
+//		Sphere s = new Sphere(0.10f);
 		/*
 		 * Setting the appearance of the sphere (color and transparency)
 		 */
@@ -1122,6 +1130,11 @@ public class Map3D extends MouseAdapter{
 		double[] currPos = new double[3];
 		double[][] inPosH = new double[4][4];
 		double[][] finPosH = new double[4][4];
+		
+		double[][] pos3H = new double[4][4];
+		double[][] pos4H = new double[4][4];
+		Target t3 = new Target(pos3H);
+		Target t4 = new Target(pos4H);
 
 		BigDecimal[] buffer = new BigDecimal[3];
 		MathContext mt = new MathContext(2, RoundingMode.HALF_DOWN);
@@ -1131,9 +1144,18 @@ public class Map3D extends MouseAdapter{
 		List<EnergyPoint> energyCloudFinal = new LinkedList<EnergyPoint>();
 
 		Target[] targets = p.getPathPositions();
+		
+		System.out.println("targets.length = " + targets.length);
 
 		inPosH = Matrix.copyMatrix(targets[0].getHomMatrix());
 		finPosH = Matrix.copyMatrix(targets[1].getHomMatrix());
+		
+		if(targets.length > 2){
+			
+			pos3H = Matrix.copyMatrix(targets[2].getHomMatrix());
+			pos4H = Matrix.copyMatrix(targets[3].getHomMatrix());
+			
+		}
 
 
 		/*
@@ -1162,9 +1184,33 @@ public class Map3D extends MouseAdapter{
 
 					curr[0].translateTarget(currPos);
 					curr[1].translateTarget(currPos);
+					
+					if(targets.length > 2){
+						
+						targets[2].setHomMatrix(pos3H);
+						targets[3].setHomMatrix(pos4H);
+
+						t3.translateTarget(currPos);
+						t4.translateTarget(currPos);
+						
+					}
 
 //					OnlinePlannerCallable thread = new OnlinePlannerCallable(curr[0], curr[1], r, point);
-					PlannerList thread = new PlannerList(curr[0], curr[1], r, point);
+					
+					PlannerList thread = null;
+					
+					if(targets.length == 2){
+					
+					thread = new PlannerList(curr[0], curr[1], r, point);
+					
+					}else{
+					
+						Path sq = new SquarePath(curr[0], curr[1], t3, t4);
+						sq.setMaxAcc(p.getMaxAcc());
+						sq.setMaxVel(p.maxVel);
+						thread = new PlannerList(sq, r, point);
+						
+					}
 					
 					Future<EnergyPoint> result = execs.submit(thread);
 
@@ -1300,7 +1346,7 @@ public class Map3D extends MouseAdapter{
 
 	private TransformGroup robotModel() {
 
-		String path = "src/Robot 3D models/IRB 140.obj";
+		String path = "src/Robot 3D models/IRB 1600.obj";
 
 		ObjectFile loader = new ObjectFile();
 		Scene s = null;
@@ -1313,7 +1359,7 @@ public class Map3D extends MouseAdapter{
 		if(path.contains("1600")){
 
 			t3d.setTranslation(new Vector3d(0.0, 0.0, 0.0));
-			t3d.setScale(0.0006);
+			t3d.setScale(0.0011);
 
 		}else{
 

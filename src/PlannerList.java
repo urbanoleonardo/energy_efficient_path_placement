@@ -4,11 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -97,6 +92,21 @@ public class PlannerList implements Callable<EnergyPoint> {
 
 		this.path = p;
 		this.energyList = new LinkedList<EnergyPoint>();
+	}
+	
+	public PlannerList(Path p, Robot robot, Point3D point3D)
+	{
+
+		this.robot = robot;
+		this.copyRobotParameters();		
+
+		this.path = p;
+//		path.setMaxAcc(acceleration);
+//		path.setMaxVel(velocity);
+
+		this.energyList = new LinkedList<EnergyPoint>();
+		this.point3D = point3D;
+		
 	}
 
 	public PlannerList(Path p, Robot robot, List<Point3D> points3D)
@@ -654,7 +664,7 @@ public class PlannerList implements Callable<EnergyPoint> {
 				optKinSolution = solution;
 			}
 		}
-		System.out.println("The chosen solution was the one requiring " + minEnergy + " J. ");
+//		System.out.println("The chosen solution was the one requiring " + minEnergy + " J. ");
 		EnergyPoint newPoint = new EnergyPoint(minEnergy);
 		this.energyList.add(newPoint);
 
