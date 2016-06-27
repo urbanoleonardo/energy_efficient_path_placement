@@ -2,13 +2,13 @@ import org.jgap.Chromosome;
 import org.jgap.FitnessFunction;
 import org.jgap.IChromosome;
 
-public class MinimizingMakeChangeFitnessFunctionOLD extends FitnessFunction {
+public class MinimizingMakeChangeFitnessFunction extends FitnessFunction {
 
 	private final Target target1;
 	private final Target target2;
 	private final Robot robot;
 
-	public MinimizingMakeChangeFitnessFunctionOLD (Target initialTarget, Target finalTarget, Robot robot){
+	public MinimizingMakeChangeFitnessFunction (Target initialTarget, Target finalTarget, Robot robot){
 
 		target1 = new Target (initialTarget.getHomMatrix());
 		target2 = new Target (finalTarget.getHomMatrix());
